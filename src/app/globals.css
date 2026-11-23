@@ -1,0 +1,536 @@
+@import "tailwindcss" source(none);
+@import "tw-animate-css";
+
+/* Перформанс: сканируем только исходники сайта — tests/, examples/, skills/
+   больше не генерируют мусорные утилиты в критическом CSS */
+@source "../../src/**/*.{js,ts,jsx,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+@view-transition {
+  navigation: auto;
+}
+
+/* ---------- Self-hosted шрифты (замена next/font) ----------
+   5 сабсетов вместо 10: латиница ужата до ASCII + типографики.
+   Fallback-метрики (size-adjust) перенесены из next/font — CLS остаётся 0. */
+
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/playfair-latin.woff2") format("woff2");
+  unicode-range: U+20-7E, U+A0, U+A9, U+AB, U+AE, U+B0, U+BB, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A,
+    U+20AC, U+2122;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/playfair-cyrillic.woff2") format("woff2");
+  unicode-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/manrope-latin.woff2") format("woff2");
+  unicode-range: U+20-7E, U+A0, U+A9, U+AB, U+AE, U+B0, U+BB, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A,
+    U+20AC, U+2122;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/manrope-cyrillic.woff2") format("woff2");
+  unicode-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/manrope-cyrillic-hryvnia.woff2") format("woff2");
+  unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+/* Fallback-метрики — пиксельные размеры подложки совпадают с шрифтом,
+   текст не «прыгает» при подмене (CLS = 0) */
+@font-face {
+  font-family: "Playfair Display Fallback";
+  src: local("Times New Roman");
+  ascent-override: 97.25%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 111.26%;
+}
+@font-face {
+  font-family: "Manrope Fallback";
+  src: local("Arial");
+  ascent-override: 103.31%;
+  descent-override: 29.07%;
+  line-gap-override: 0%;
+  size-adjust: 103.19%;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Craft Choco palette */
+  --color-cream: #f8f2e9;
+  --color-cream-100: #f2e9db;
+  --color-cream-200: #e8dbc7;
+  --color-choco-950: #150c07;
+  --color-choco-900: #221409;
+  --color-choco-850: #2a1a0e;
+  --color-choco-800: #342012;
+  --color-choco-700: #452b18;
+  --color-choco-600: #5a3a22;
+  --color-choco-500: #71492c;
+  --color-choco-400: #8f6240;
+  --color-gold-200: #f0dfb8;
+  --color-gold-300: #e5cb8d;
+  --color-gold-400: #d6b169;
+  --color-gold-500: #c49a4a;
+  --color-gold-600: #a87f33;
+  --color-gold-700: #86622a;
+}
+
+:root {
+  --radius: 0.75rem;
+  --font-body: "Manrope", "Manrope Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", "Playfair Display Fallback", Georgia, serif;
+  --background: #f8f2e9;
+  --foreground: #2a1a0e;
+  --card: #fffdf9;
+  --card-foreground: #2a1a0e;
+  --popover: #fffdf9;
+  --popover-foreground: #2a1a0e;
+  --primary: #342012;
+  --primary-foreground: #f8f2e9;
+  --secondary: #f2e9db;
+  --secondary-foreground: #342012;
+  --muted: #f2e9db;
+  --muted-foreground: #7a6a58;
+  --accent: #f0dfb8;
+  --accent-foreground: #342012;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e4d7c3;
+  --input: #e4d7c3;
+  --ring: #c49a4a;
+  --chart-1: #c49a4a;
+  --chart-2: #5a3a22;
+  --chart-3: #8f6240;
+  --chart-4: #e5cb8d;
+  --chart-5: #452b18;
+  --sidebar: #f8f2e9;
+  --sidebar-foreground: #2a1a0e;
+  --sidebar-primary: #342012;
+  --sidebar-primary-foreground: #f8f2e9;
+  --sidebar-accent: #f2e9db;
+  --sidebar-accent-foreground: #342012;
+  --sidebar-border: #e4d7c3;
+  --sidebar-ring: #c49a4a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body), system-ui, sans-serif;
+    overflow-x: clip;
+  }
+  section[id] {
+    scroll-margin-top: 84px;
+  }
+  ::selection {
+    background: #c49a4a;
+    color: #150c07;
+  }
+}
+
+/* ---------- decorative helpers: Physical Optics 2027 Aesthetic ---------- */
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* Оптический металлический блик золота (многоточечное отражение света без полосатости) */
+.gold-text {
+  background: linear-gradient(135deg, #f7ebd0 0%, #dfb86e 24%, #fff5df 48%, #b88b3b 72%, #f2dfb6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 2px rgba(184, 139, 59, 0.15);
+}
+
+.divider-gold {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.divider-gold::before,
+.divider-gold::after {
+  content: "";
+  height: 1px;
+  width: 54px;
+  background: linear-gradient(90deg, transparent, #c49a4a 80%, rgba(247, 235, 208, 0.9));
+}
+.divider-gold::after {
+  background: linear-gradient(90deg, rgba(247, 235, 208, 0.9), #c49a4a 20%, transparent);
+}
+
+.texture-dots {
+  background-image: radial-gradient(rgba(196, 154, 74, 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.texture-cocoa {
+  background-image: radial-gradient(rgba(21, 12, 7, 0.35) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* Световая сцена: софит галереи (глубина пространства вместо плоского фона) */
+.stage-glow {
+  background-image: 
+    radial-gradient(ellipse 90% 55% at 50% -4%, rgba(214, 177, 105, 0.38) 0%, rgba(248, 242, 233, 0.5) 45%, rgba(230, 215, 192, 0.95) 100%),
+    radial-gradient(circle at 10% 25%, rgba(196, 154, 74, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 90% 25%, rgba(196, 154, 74, 0.18) 0%, transparent 45%);
+  background-color: #f1e5d4;
+}
+
+.stage-glow-dark {
+  background-image: 
+    radial-gradient(ellipse 85% 50% at 50% -8%, rgba(229, 203, 141, 0.32) 0%, rgba(34, 20, 9, 0.6) 55%, #150c07 100%),
+    radial-gradient(circle at 20% 40%, rgba(196, 154, 74, 0.14) 0%, transparent 50%);
+  background-color: #150c07;
+}
+
+/* Физическая карточка: световая микрофаска, глубокие шоколадные тени и осязаемый объем */
+.card-lift {
+  background: linear-gradient(180deg, #ffffff 0%, #fffdfa 55%, #faf4ea 100%);
+  border: 1.5px solid rgba(214, 177, 105, 0.4);
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 1),
+    0 2px 5px rgba(34, 20, 9, 0.05),
+    0 10px 26px -4px rgba(42, 26, 14, 0.14),
+    0 20px 42px -10px rgba(42, 26, 14, 0.08);
+  transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.2, 1, 0.3, 1), border-color 0.4s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-10px) scale(1.01);
+  border-color: rgba(196, 154, 74, 0.9);
+  box-shadow: 
+    inset 0 2px 0 0 rgba(255, 255, 255, 1),
+    0 6px 14px -2px rgba(34, 20, 9, 0.12),
+    0 28px 60px -12px rgba(42, 26, 14, 0.4),
+    0 0 28px -2px rgba(214, 177, 105, 0.5);
+}
+
+/* Кнопка темного трюфеля 70%: глубокий бархат, золотое ребро и ощутимый глянец */
+.btn-choco-luxe {
+  background: linear-gradient(180deg, #3d2412 0%, #201107 100%);
+  color: #fffaf0 !important;
+  border: 1.5px solid rgba(229, 203, 141, 0.7);
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.65),
+    0 3px 8px rgba(21, 12, 7, 0.45),
+    0 8px 22px -3px rgba(196, 154, 74, 0.35);
+  letter-spacing: 0.015em;
+  transition: all 0.35s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.btn-choco-luxe:hover {
+  background: linear-gradient(180deg, #543219 0%, #2f190b 100%);
+  border-color: #ffd88a;
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.65),
+    0 6px 18px rgba(21, 12, 7, 0.55),
+    0 16px 36px -4px rgba(214, 177, 105, 0.7);
+  transform: translateY(-2px);
+}
+
+.btn-choco-luxe:active {
+  transform: translateY(0.5px);
+  box-shadow: 
+    inset 0 2px 5px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px 0 rgba(21, 12, 7, 0.3);
+}
+
+/* Кнопка расплавленного золота: мощный зеркальный свет и объемная аура */
+.btn-gold-luxe {
+  background: linear-gradient(180deg, #fcebc0 0%, #d8a848 50%, #b38226 100%);
+  color: #1a0f05 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    inset 0 2px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 0 0 rgba(110, 75, 15, 0.5),
+    0 4px 12px rgba(110, 75, 15, 0.35),
+    0 18px 42px -8px rgba(196, 154, 74, 0.75);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: all 0.35s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.btn-gold-luxe:hover {
+  background: linear-gradient(180deg, #fff3d4 0%, #e6b957 50%, #c4912e 100%);
+  border-color: #ffffff;
+  box-shadow: 
+    inset 0 2px 0 0 rgba(255, 255, 255, 1),
+    0 8px 22px rgba(110, 75, 15, 0.45),
+    0 24px 54px -8px rgba(214, 177, 105, 0.9);
+  transform: translateY(-2.5px);
+}
+
+.btn-gold-luxe:active {
+  transform: translateY(0.5px);
+}
+
+/* Премиальное полупрозрачное стекло с микрофаской и золотым кантом */
+.glass-surface {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(254, 250, 243, 0.86) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(214, 177, 105, 0.45);
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 1),
+    0 6px 20px -3px rgba(34, 20, 9, 0.08);
+}
+
+.img-zoom {
+  overflow: hidden;
+}
+.img-zoom img {
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-zoom:hover img {
+  transform: scale(1.06);
+}
+
+/* ---------- animations ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 1.2s ease-out both;
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* ---------- scrollbars ---------- */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #c49a4a transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d6b169;
+  border-radius: 6px;
+}
+
+/* ---------- киноплёнка: зерно и кино-эффекты ---------- */
+
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  animation: film-grain 0.7s steps(4) infinite;
+}
+@keyframes film-grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-grain { animation: none; }
+}
+
+/* кино открывается из темноты при загрузке */
+.film-intro {
+  animation: film-intro 1.7s ease-out 0.15s both;
+}
+@keyframes film-intro {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-intro { animation: none; opacity: 0; }
+}
+
+/* ——— Шоколадное погружение (3D) ——— */
+/* плавящееся золото на прелоадере */
+.journey-goldflow {
+  animation: journey-goldflow 2.6s linear infinite;
+}
+@keyframes journey-goldflow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-goldflow { animation: none; }
+}
+
+/* ——— 2026 BONBON PRO 3D Showcase Utilities ——— */
+.font-mono-tech {
+  font-family: var(--font-mono-tech), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.font-editorial {
+  font-family: var(--font-display), "Playfair Display", Georgia, serif;
+  font-style: italic;
+}
+
+.font-inter-tight {
+  font-family: var(--font-inter-tight), var(--font-body), system-ui, sans-serif;
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #b87d2e 0%, #e7b866 35%, #fff3ce 55%, #d69e43 80%, #8f5c1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass-panel {
+  background: rgba(12, 10, 9, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.crafo-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(231, 184, 102, 0.35), rgba(255, 243, 206, 0.65));
+  outline: none;
+  cursor: pointer;
+}
+
+.crafo-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fff3ce, #d69e43);
+  border: 2px solid #000000;
+  box-shadow: 0 0 18px rgba(231, 184, 102, 0.75);
+  transition: transform 0.15s ease;
+}
+
+.crafo-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+.crafo-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fff3ce, #d69e43);
+  border: 2px solid #000000;
+  box-shadow: 0 0 18px rgba(231, 184, 102, 0.75);
+}

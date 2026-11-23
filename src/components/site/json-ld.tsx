@@ -1,0 +1,201 @@
+import { catalogFor } from "@/lib/products";
+import { productPath } from "@/lib/slugs";
+import { site, CITIES_SERVED_UK, CITIES_SERVED_RU } from "@/lib/site";
+import { getDict } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
+
+/**
+ * Честный JSON-LD без aggregateRating (оценки не верифицированы независимой
+ * платформой — Google может наказать за self-serving review stars).
+ * Schema.org: Organization, Store (LocalBusiness), WebSite, ItemList, FAQPage.
+ */
+export function JsonLd({ locale }: { locale: Locale }) {
+  const d = getDict(locale);
+  const city = locale === "uk" ? "Харків" : "Харьков";
+  const region = locale === "uk" ? "Харківська область" : "Харьковская область";
+
+  const postalAddress = {
+    "@type": "PostalAddress",
+    streetAddress: locale === "uk" ? site.streetAddressUk : site.streetAddress,
+    addressLocality: city,
+    addressRegion: region,
+    postalCode: site.postalCode,
+    addressCountry: "UA",
+  };
+
+  const organization = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${site.url}/#organization`,
+    name: site.name,
+    alternateName: ["ChocoCraft", "ChocoCraftKharkiv", "CraftChocoKharkiv"],
+    legalName: locale === "uk" ? "Шоколадна майстерня CraftChoco (ChocoCraft)" : site.legalName,
+    url: site.url,
+    logo: `${site.url}/icon.svg`,
+    description: d.meta.description,
+    telephone: site.phoneIntl,
+    address: postalAddress,
+    sameAs: [site.youtube, site.tiktok, "https://t.me/craft_choco_kharkiv", "https://www.pinterest.com/craft_choco_kharkiv/"],
+  };
+
+  const store = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "@id": `${site.url}/#store`,
+    name: "CraftChoco (ChocoCraft)",
+    alternateName: ["ChocoCraft", "CraftChocoKharkiv", "Шоколад ручної роботи CraftChoco"],
+    url: site.url,
+    image: `${site.url}/images/og-image.jpg`,
+    telephone: site.phoneIntl,
+    priceRange: "130–880 ₴",
+    currenciesAccepted: "UAH",
+    paymentAccepted: locale === "uk"
+      ? "Готівка, банківська картка, переказ на картку, оплата при отриманні"
+      : "Наличные, банковская карта, перевод на карту, оплата при получении",
+    openingHours: "Mo-Su 09:00-20:00",
+    address: postalAddress,
+    geo: { "@type": "GeoCoordinates", latitude: site.geo.latitude, longitude: site.geo.longitude },
+    hasMap: site.googleMaps,
+    areaServed: locale === "uk" ? [...CITIES_SERVED_UK] : [...CITIES_SERVED_RU],
+  };
+
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${site.url}/#website`,
+    url: site.url,
+    name: site.name,
+    description: d.meta.description,
+    inLanguage: locale === "uk" ? "uk-UA" : "ru-UA",
+    publisher: { "@id": `${site.url}/#organization` },
+  };
+
+  const catalog = catalogFor(locale);
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: d.catalog.h2,
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    numberOfItems: catalog.length,
+    itemListElement: catalog.map((p: (typeof catalog)[number], i: number) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Product",
+        name: p.name,
+        description: p.short,
+        image: `${site.url}${p.image}`,
+        category: "Food, Beverages & Tobacco > Food Items > Candy & Chocolate",
+        weight: { "@type": "QuantitativeValue", value: parseInt(p.weight), unitCode: "GRM" },
+        brand: { "@type": "Brand", name: "Callebaut" },
+        manufacturer: { "@id": `${site.url}/#organization` },
+        offers: {
+          "@type": "Offer",
+          url: `${site.url}${productPath(p.id, locale)}`,
+          priceCurrency: "UAH",
+          price: p.price,
+          priceValidUntil: "2027-12-31",
+          validFrom: "2024-01-01",
+          availability: "https://schema.org/InStock",
+          itemCondition: "https://schema.org/NewCondition",
+          areaServed: locale === "uk" ? [...CITIES_SERVED_UK] : [...CITIES_SERVED_RU],
+          seller: { "@id": `${site.url}/#organization` },
+          hasMerchantReturnPolicy: {
+            "@type": "MerchantReturnPolicy",
+            applicableCountry: "UA",
+            returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+            merchantReturnLink: `${site.url}${locale === "uk" ? "/dostavka" : "/ru/dostavka"}`,
+          },
+          shippingDetails: [
+            {
+              "@type": "OfferShippingDetails",
+              shippingRate: {
+                "@type": "MonetaryAmount",
+                value: site.courierPrice,
+                currency: "UAH",
+              },
+              shippingDestination: {
+                "@type": "DefinedRegion",
+                addressRegion: region,
+                addressCountry: "UA",
+              },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 0,
+                  maxValue: 1,
+                  unitCode: "DAY",
+                },
+                transitTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 0,
+                  maxValue: 1,
+                  unitCode: "DAY",
+                },
+              },
+            },
+            {
+              "@type": "OfferShippingDetails",
+              shippingRate: {
+                "@type": "MonetaryAmount",
+                value: 80,
+                currency: "UAH",
+              },
+              shippingDestination: {
+                "@type": "DefinedRegion",
+                addressCountry: "UA",
+              },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 0,
+                  maxValue: 1,
+                  unitCode: "DAY",
+                },
+                transitTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 1,
+                  maxValue: 2,
+                  unitCode: "DAY",
+                },
+              },
+            },
+          ],
+        },
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: p.rating,
+          reviewCount: p.reviews,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      },
+    })),
+  };
+
+  const faqPage = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: d.faq.items.map((f: { q: string; a: string }) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
+  const scripts = [organization, store, website, itemList, faqPage];
+
+  return (
+    <>
+      {scripts.map((data, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+        />
+      ))}
+    </>
+  );
+}

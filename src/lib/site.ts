@@ -1,0 +1,78 @@
+// Официальный рабочий домен сайта: https://crafo.com.ua
+export const site = {
+  name: "CraftChoco",
+  alternateName: "ChocoCraft",
+  brandAliases: ["CraftChoco", "ChocoCraft", "CraftChocoKharkiv", "ChocoCraftKharkiv"],
+  legalName: "Шоколадная мастерская CraftChoco (ChocoCraft)",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://crafo.com.ua",
+  slogan: "Шоколад ручной работы CraftChoco (ChocoCraft) из бельгийского Callebaut",
+  description:
+    "Шоколадная мастерская CraftChoco (ChocoCraft) в Харькове: шоколад ручной работы, конфеты с фруктовыми ганашами, шоколадные розы и цветы из бельгийского Callebaut. Подарочные наборы от 150 ₴ с доставкой по Харькову и всей Украине. Бесплатно от 3 000 ₴.",
+  phone: "+380 96 253 56 10",
+  phoneShort: "096 253 56 10",
+  phoneHref: "tel:+380962535610",
+  phoneIntl: "+380962535610",
+  city: "Харьков",
+  cityUk: "Харків",
+  address: "г. Харьков, ул. Лебединская, 1 (р-н стадиона Металлист)",
+  addressUk: "м. Харків, вул. Лебединська, 1 (р-н стадіону «Металіст»)",
+  streetAddress: "ул. Лебединская, 1",
+  streetAddressUk: "вул. Лебединська, 1",
+  district: "р-н стадиона Металлист",
+  districtUk: "р-н стадіону «Металіст»",
+  postalCode: "61001",
+  hours: "Принимаем заказы ежедневно с 9:00 до 20:00",
+  freeShippingFrom: 3000,
+  courierPrice: 100,
+  youtube: "https://www.youtube.com/@craft.choco.kharkiv",
+  youtubeHandle: "@craft.choco.kharkiv",
+  tiktok: "https://www.tiktok.com/@aleksandr_mag_",
+  tiktokHandle: "@aleksandr_mag_",
+  googleMaps: "https://www.google.com/maps/place//@49.9794669,36.2654184,17z/data=!3m1!4b1!4m3!3m2!1s0x4127a19d4450bdad:0x66f690014835d713!12e1",
+  geo: {
+    latitude: 49.9794669,
+    longitude: 36.2654184,
+  },
+  messengers: [
+    { name: "Viber", href: "viber://chat?number=%2B380962535610", hint: "096 253 56 10" },
+    { name: "WhatsApp", href: "https://wa.me/380962535610", hint: "096 253 56 10" },
+    { name: "Telegram", href: "https://t.me/craft_choco_kharkiv", hint: "@craft_choco_kharkiv" },
+  ],
+  social: [
+    { name: "Viber", href: "viber://chat?number=%2B380962535610" },
+    { name: "WhatsApp", href: "https://wa.me/380962535610" },
+    { name: "Telegram", href: "https://t.me/craft_choco_kharkiv" },
+    { name: "YouTube", href: "https://www.youtube.com/@craft.choco.kharkiv" },
+    { name: "TikTok", href: "https://www.tiktok.com/@aleksandr_mag_" },
+    { name: "Pinterest", href: "https://www.pinterest.com/craft_choco_kharkiv/" },
+  ],
+} as const;
+
+export const rating = {
+  value: "4.9",
+  count: 500,
+} as const;
+
+export const CITIES_SERVED_UK = [
+  "Харків",
+  "Київ",
+  "Дніпро",
+  "Одеса",
+  "Запоріжжя",
+  "Полтава",
+  "Кривий Ріг",
+  "Житомир",
+  "Україна",
+] as const;
+
+export const CITIES_SERVED_RU = [
+  "Харьков",
+  "Киев",
+  "Днепр",
+  "Одесса",
+  "Запорожье",
+  "Полтава",
+  "Кривой Рог",
+  "Житомир",
+  "Украина",
+] as const;
