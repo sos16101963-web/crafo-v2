@@ -37,6 +37,8 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
   const snappedStateRef = useRef(false);
   const [uiProgress, setUiProgress] = useState(0);
   const [canvasReady, setCanvasReady] = useState(false);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   const isInstant = profile.tier === "instant";
 
@@ -78,7 +80,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
         if (isVisible) {
           dirty = true;
           prioritizeSequence("crunch");
-          onActive?.();
+          onActiveRef.current?.();
         }
       },
       { threshold: 0.01 }
@@ -131,10 +133,11 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
             markedReady = true;
             setCanvasReady(true);
           }
+          const isMobile = (canvas.clientWidth || window.innerWidth) < 768;
           drawSequenceFrame(ctx, frameImg, canvas.width, canvas.height, {
             mode: "contain",
-            scale: 1.02,
-            offsetY: 0.02,
+            scale: isMobile ? 0.98 : 1.02,
+            offsetY: isMobile ? -0.02 : 0.02,
             featherVoid: true,
           });
         }
@@ -150,7 +153,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   const snapProgress = isInstant ? 1 : smoothstep(0.08, 0.56, uiProgress);
   const dbValue = Math.round(28 + snapProgress * 66);
@@ -165,7 +168,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
       ref={sectionRef}
       className={isInstant ? "relative min-h-screen bg-black" : "relative h-[340vh] bg-black"}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between bg-black py-24 px-6 sm:px-12 lg:px-20">
+      <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-between bg-black pt-20 pb-24 px-4 sm:py-24 sm:px-12 lg:px-20">
         <img
           src={isInstant ? "/plates/split-passion.png" : "/frames/posters/crunch.webp"}
           alt="CraftChoco Crunch"
@@ -192,30 +195,30 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
         />
 
         <div className="relative z-10 max-w-2xl pointer-events-none">
-          <p className="font-mono-tech text-[11px] tracking-[0.26em] text-[#e7b866]/85 uppercase mb-3">
+          <p className="font-mono-tech text-[10px] sm:text-[11px] tracking-[0.26em] text-[#e7b866]/85 uppercase mb-1.5 sm:mb-3">
             {SHOWCASE_COPY.crunch.kicker[locale]}
           </p>
-          <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.02]">
+          <h2 className="text-2xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.04]">
             {SHOWCASE_COPY.crunch.heading[locale]}
           </h2>
-          <p className="text-sm sm:text-base text-white/65 mt-3 max-w-lg leading-relaxed">
+          <p className="hidden sm:block text-sm sm:text-base text-white/65 mt-3 max-w-lg leading-relaxed">
             {SHOWCASE_COPY.crunch.sub[locale]}
           </p>
         </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6 pointer-events-none">
-          <div className="flex flex-wrap gap-4">
-            <div className="glass-panel rounded-2xl px-5 py-4 min-w-[200px]">
-              <div className="font-mono-tech text-[10px] tracking-[0.2em] uppercase text-white/50">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-3 sm:gap-6 pointer-events-none">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-4">
+            <div className="glass-panel rounded-2xl px-3 py-2.5 sm:px-5 sm:py-4 sm:min-w-[200px]">
+              <div className="font-mono-tech text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-white/50 truncate">
                 {SHOWCASE_COPY.crunch.dbLabel[locale]}
               </div>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="font-mono-tech text-3xl sm:text-4xl font-semibold gold-gradient-text">
+              <div className="flex items-baseline gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                <span className="font-mono-tech text-xl sm:text-4xl font-semibold gold-gradient-text">
                   {dbValue}
                 </span>
-                <span className="font-mono-tech text-xs text-[#e7b866]/80">dB SPL</span>
+                <span className="font-mono-tech text-[10px] sm:text-xs text-[#e7b866]/80">dB SPL</span>
               </div>
-              <div className="flex items-end gap-1 h-5 mt-3">
+              <div className="flex items-end gap-0.5 sm:gap-1 h-3 sm:h-5 mt-2 sm:mt-3">
                 {Array.from({ length: 16 }).map((_, idx) => {
                   const threshold = idx / 16;
                   const active = snapProgress >= threshold;
@@ -238,17 +241,17 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
               </div>
             </div>
 
-            <div className="glass-panel rounded-2xl px-5 py-4 min-w-[180px]">
-              <div className="font-mono-tech text-[10px] tracking-[0.2em] uppercase text-white/50">
+            <div className="glass-panel rounded-2xl px-3 py-2.5 sm:px-5 sm:py-4 sm:min-w-[180px]">
+              <div className="font-mono-tech text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-white/50 truncate">
                 {SHOWCASE_COPY.crunch.shardsLabel[locale]}
               </div>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="font-mono-tech text-3xl sm:text-4xl font-semibold text-white">
+              <div className="flex items-baseline gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                <span className="font-mono-tech text-xl sm:text-4xl font-semibold text-white">
                   {shardsAirborne}
                 </span>
-                <span className="font-mono-tech text-xs text-white/45">/ 180</span>
+                <span className="font-mono-tech text-[10px] sm:text-xs text-white/45">/ 180</span>
               </div>
-              <div className="mt-3 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+              <div className="mt-2 sm:mt-3 h-1 sm:h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-[#e7b866] to-[#fff3ce] transition-all duration-75"
                   style={{ width: `${(shardsAirborne / 180) * 100}%` }}
@@ -258,7 +261,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
           </div>
 
           <div
-            className="font-editorial text-xl sm:text-2xl text-[#f3d28e] transition-opacity duration-300"
+            className="font-editorial text-sm sm:text-2xl text-[#f3d28e] transition-opacity duration-300"
             style={{ opacity: showUncrunch ? 1 : 0 }}
           >
             {SHOWCASE_COPY.crunch.uncrunch[locale]}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Lenis from "lenis";
 import { Volume2, X, ArrowDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
@@ -147,6 +147,19 @@ export const BonbonShowcase3D: React.FC<{
     evictDistantSequences(Array.from(keepIds));
   }, []);
 
+  const chapterHandlers = useMemo(
+    () => ({
+      spin: () => runEvictionAround("spin"),
+      crunch: () => runEvictionAround("crunch"),
+      lamination: () => runEvictionAround("lamination"),
+      ganache: () => runEvictionAround("ganache"),
+      tempering: () => runEvictionAround("tempering"),
+      scanner: () => runEvictionAround("scanner"),
+      inspector: () => runEvictionAround("inspector"),
+    }),
+    [runEvictionAround],
+  );
+
   useEffect(() => {
     const ids = CHAPTER_NAV.map((c) => c.id);
     const updateActive = () => {
@@ -204,7 +217,7 @@ export const BonbonShowcase3D: React.FC<{
   };
 
   return (
-    <div id="showcase-3d-root" ref={rootRef} className="relative bg-black text-white">
+    <div id="showcase-3d-root" ref={rootRef} className="relative bg-black text-white overflow-x-clip">
       {/* Right-edge desktop chapter progress rail (only inside 3D showcase) */}
       {inShowcase && (
         <nav
@@ -241,37 +254,37 @@ export const BonbonShowcase3D: React.FC<{
       <ChapterSpin
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("spin")}
+        onActive={chapterHandlers.spin}
       />
       <ChapterCrunch
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("crunch")}
+        onActive={chapterHandlers.crunch}
       />
       <ChapterLamination
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("lamination")}
+        onActive={chapterHandlers.lamination}
       />
       <ChapterGanache
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("ganache")}
+        onActive={chapterHandlers.ganache}
       />
       <ChapterTempering
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("tempering")}
+        onActive={chapterHandlers.tempering}
       />
       <ChapterScanner
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("scanner")}
+        onActive={chapterHandlers.scanner}
       />
       <ChapterInspector360
         locale={locale}
         profile={profile}
-        onActive={() => runEvictionAround("inspector")}
+        onActive={chapterHandlers.inspector}
       />
       <ChapterLineup locale={locale} />
       <ChapterOrder locale={locale} standalone3d={standalone3d} />

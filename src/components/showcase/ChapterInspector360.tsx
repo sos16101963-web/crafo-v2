@@ -45,6 +45,8 @@ export const ChapterInspector360: React.FC<{
   const snappedRef = useRef(false);
   const dirtyRef = useRef(true);
   const nearPreloadedRef = useRef(false);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   const isInstant = profile.tier === "instant";
 
@@ -106,7 +108,7 @@ export const ChapterInspector360: React.FC<{
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          onActive?.();
+          onActiveRef.current?.();
           if (!nearPreloadedRef.current) {
             nearPreloadedRef.current = true;
             requestChapterSequence("spin");
@@ -124,7 +126,7 @@ export const ChapterInspector360: React.FC<{
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? false;
         if (isVisible) {
-          onActive?.();
+          onActiveRef.current?.();
           dirtyRef.current = true;
           const activeSeq =
             flavorRef.current === "passion" && targetSplitRef.current < 0.015
@@ -228,7 +230,7 @@ export const ChapterInspector360: React.FC<{
       visIo.disconnect();
       window.removeEventListener("resize", resize);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -331,72 +333,104 @@ export const ChapterInspector360: React.FC<{
         </div>
 
         <div className="relative rounded-3xl overflow-hidden border border-white/12 bg-black">
-          {isInstant ? (
-            <div className="relative h-[400px] sm:h-[520px] w-full bg-black overflow-hidden">
-              <img
-                src={activeFlavor.plate}
-                alt={activeFlavor.name[locale]}
-                loading="lazy"
-                className="h-full w-full object-contain transition-opacity duration-300"
-                style={{ opacity: 1 - splitPct / 100 }}
-              />
-              <img
-                src={activeFlavor.splitPlate}
-                alt={`${activeFlavor.name[locale]} — ${SHOWCASE_COPY.inspector.splitLabel[locale]}`}
-                loading="lazy"
-                className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300"
-                style={{ opacity: splitPct / 100 }}
-              />
-            </div>
-          ) : (
-            <canvas
-              ref={canvasRef}
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              className="w-full h-[460px] sm:h-[580px] block cursor-grab active:cursor-grabbing touch-none"
-            />
-          )}
-
-          <div className="absolute top-5 left-5 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/75 border border-white/15 font-mono-tech text-[10px] tracking-wider text-white/75 pointer-events-none">
-            <MoveHorizontal className="w-3.5 h-3.5 text-[#e7b866]" />
-            {flavorId === "passion" && splitPct === 0
-              ? "DRAG TO SPIN 360°"
-              : "DRAG TO OPEN / CLOSE SPLIT"}
-          </div>
-
-          <div
-            className="absolute bottom-24 left-4 right-4 sm:left-6 sm:right-6 flex flex-wrap items-center justify-center gap-2.5 pointer-events-none transition-all duration-300"
-            style={{
-              opacity: showFillingTags ? 1 : 0,
-              transform: `translate3d(0, ${showFillingTags ? 0 : 12}px, 0)`,
-            }}
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 border border-[#e7b866]/45 font-mono-tech text-[10px] tracking-widest text-[#e7b866] uppercase">
-              <Sparkles className="w-3 h-3" />
-              {SHOWCASE_COPY.inspector.fillingTitle[locale]}
-            </span>
-            {activeFlavor.insideLayers[locale].map((layerText, idx) => (
-              <span
-                key={layerText}
-                className="px-3.5 py-1.5 rounded-full glass-panel text-xs text-white/95 font-medium flex items-center gap-2"
-              >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor:
-                      idx === 0
-                        ? activeFlavor.accentHex
-                        : idx === 1
-                          ? "#e7b866"
-                          : "#f3d28e",
-                  }}
+          <div className="relative bg-black">
+            {isInstant ? (
+              <div className="relative h-[300px] sm:h-[500px] w-full bg-black overflow-hidden">
+                <img
+                  src={activeFlavor.plate}
+                  alt={activeFlavor.name[locale]}
+                  loading="lazy"
+                  className="h-full w-full object-contain transition-opacity duration-300"
+                  style={{ opacity: 1 - splitPct / 100 }}
                 />
-                {layerText}
+                <img
+                  src={activeFlavor.splitPlate}
+                  alt={`${activeFlavor.name[locale]} — ${SHOWCASE_COPY.inspector.splitLabel[locale]}`}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300"
+                  style={{ opacity: splitPct / 100 }}
+                />
+              </div>
+            ) : (
+              <canvas
+                ref={canvasRef}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                className="w-full h-[320px] sm:h-[500px] lg:h-[580px] block cursor-grab active:cursor-grabbing touch-none"
+              />
+            )}
+
+            <div className="absolute top-3.5 left-3.5 sm:top-5 sm:left-5 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/75 border border-white/15 font-mono-tech text-[9px] sm:text-[10px] tracking-wider text-white/75 pointer-events-none">
+              <MoveHorizontal className="w-3.5 h-3.5 text-[#e7b866]" />
+              {flavorId === "passion" && splitPct === 0
+                ? "DRAG TO SPIN 360°"
+                : "DRAG TO OPEN / CLOSE SPLIT"}
+            </div>
+
+            {/* Desktop filling badges overlaid along bottom edge of stage */}
+            <div
+              className="hidden sm:flex absolute bottom-5 left-6 right-6 flex-wrap items-center justify-center gap-2.5 pointer-events-none transition-all duration-300"
+              style={{
+                opacity: showFillingTags ? 1 : 0,
+                transform: `translate3d(0, ${showFillingTags ? 0 : 12}px, 0)`,
+              }}
+            >
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 border border-[#e7b866]/45 font-mono-tech text-[10px] tracking-widest text-[#e7b866] uppercase">
+                <Sparkles className="w-3 h-3" />
+                {SHOWCASE_COPY.inspector.fillingTitle[locale]}
               </span>
-            ))}
+              {activeFlavor.insideLayers[locale].map((layerText, idx) => (
+                <span
+                  key={layerText}
+                  className="px-3.5 py-1.5 rounded-full glass-panel text-xs text-white/95 font-medium flex items-center gap-2"
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor:
+                        idx === 0
+                          ? activeFlavor.accentHex
+                          : idx === 1
+                            ? "#e7b866"
+                            : "#f3d28e",
+                    }}
+                  />
+                  {layerText}
+                </span>
+              ))}
+            </div>
           </div>
+
+          {/* Mobile filling badges cleanly below the bonbon stage */}
+          {showFillingTags && (
+            <div className="sm:hidden flex flex-wrap items-center gap-1.5 px-3.5 py-2.5 bg-[#070709] border-t border-white/10">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/80 border border-[#e7b866]/45 font-mono-tech text-[9px] tracking-widest text-[#e7b866] uppercase">
+                <Sparkles className="w-2.5 h-2.5" />
+                {SHOWCASE_COPY.inspector.fillingTitle[locale]}
+              </span>
+              {activeFlavor.insideLayers[locale].map((layerText, idx) => (
+                <span
+                  key={layerText}
+                  className="px-2.5 py-1 rounded-full glass-panel text-[11px] text-white/95 font-medium flex items-center gap-1.5"
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor:
+                        idx === 0
+                          ? activeFlavor.accentHex
+                          : idx === 1
+                            ? "#e7b866"
+                            : "#f3d28e",
+                    }}
+                  />
+                  {layerText}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-6 bg-[#070709]/95 border-t border-white/10 items-center">
             <div className="lg:col-span-7 flex flex-wrap gap-2.5">

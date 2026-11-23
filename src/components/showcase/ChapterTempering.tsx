@@ -49,6 +49,8 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
   const dampedRef = useRef(0);
   const [progress, setProgress] = useState(0);
   const [canvasReady, setCanvasReady] = useState(false);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   const isInstant = profile.tier === "instant";
 
@@ -109,7 +111,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
           dirty = true;
           prioritizeSequence("tempering");
           update();
-          onActive?.();
+          onActiveRef.current?.();
         }
       },
       { threshold: 0.02 }
@@ -164,7 +166,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
       window.removeEventListener("scroll", update);
       soundEngine.setTemperHum(0, 20);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   const effectiveP = isInstant ? 0.85 : progress;
   const tempC = computeTempC(effectiveP);
@@ -178,6 +180,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
 
   const svgX = 16 + effectiveP * 248;
   const svgY = 92 - ((tempC - 16) / 31) * 74;
+  const mobSvgY = 48 - ((tempC - 16) / 31) * 38;
 
   return (
     <section
@@ -185,7 +188,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
       ref={sectionRef}
       className={isInstant ? "relative min-h-screen bg-black" : "relative h-[300vh] bg-black"}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between bg-black py-24 px-6 sm:px-12 lg:px-20">
+      <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-between bg-black pt-20 pb-24 px-4 sm:py-24 sm:px-12 lg:px-20">
         <img
           src={isInstant ? "/plates/temper-gloss.png" : "/frames/posters/tempering.webp"}
           alt="CraftChoco Form V Tempering"
@@ -207,29 +210,30 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.12) 45%, rgba(0,0,0,0.86) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.06) 36%, rgba(0,0,0,0.06) 64%, rgba(0,0,0,0.84) 100%)",
           }}
         />
 
         <div className="relative z-10 max-w-2xl pointer-events-none">
-          <p className="font-mono-tech text-[11px] tracking-[0.26em] text-[#e7b866]/90 uppercase mb-3">
+          <p className="font-mono-tech text-[10px] sm:text-[11px] tracking-[0.26em] text-[#e7b866]/90 uppercase mb-1.5 sm:mb-3">
             {SHOWCASE_COPY.tempering.kicker[locale]}
           </p>
-          <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.02]">
+          <h2 className="text-2xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.04]">
             {SHOWCASE_COPY.tempering.heading[locale]}
           </h2>
-          <p className="text-sm sm:text-base text-white/65 mt-3 max-w-lg leading-relaxed">
+          <p className="hidden sm:block text-sm sm:text-base text-white/65 mt-3 max-w-lg leading-relaxed">
             {SHOWCASE_COPY.tempering.sub[locale]}
           </p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Desktop telemetry grid + Form-V curve */}
+        <div className="hidden md:grid relative z-10 grid-cols-12 gap-4 items-end">
+          <div className="col-span-8 grid grid-cols-4 gap-3">
             <div className="glass-panel rounded-2xl p-4">
               <div className="font-mono-tech text-[10px] tracking-[0.18em] text-white/45 uppercase">
                 {SHOWCASE_COPY.tempering.timerLabel[locale]}
               </div>
-              <div className="font-mono-tech text-2xl sm:text-3xl font-semibold text-white mt-1.5">
+              <div className="font-mono-tech text-3xl font-semibold text-white mt-1.5">
                 {mm}:{ss}
               </div>
             </div>
@@ -238,7 +242,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
               <div className="font-mono-tech text-[10px] tracking-[0.18em] text-white/45 uppercase">
                 {SHOWCASE_COPY.tempering.tempLabel[locale]}
               </div>
-              <div className="font-mono-tech text-2xl sm:text-3xl font-semibold gold-gradient-text mt-1.5">
+              <div className="font-mono-tech text-3xl font-semibold gold-gradient-text mt-1.5">
                 {tempC.toFixed(1)}°C
               </div>
             </div>
@@ -247,7 +251,7 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
               <div className="font-mono-tech text-[10px] tracking-[0.18em] text-white/45 uppercase">
                 {SHOWCASE_COPY.tempering.crystalLabel[locale]}
               </div>
-              <div className="font-mono-tech text-2xl sm:text-3xl font-semibold text-white mt-1.5">
+              <div className="font-mono-tech text-3xl font-semibold text-white mt-1.5">
                 {crystalPct.toFixed(1)}%
               </div>
             </div>
@@ -256,13 +260,13 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
               <div className="font-mono-tech text-[10px] tracking-[0.18em] text-white/45 uppercase">
                 {SHOWCASE_COPY.tempering.colorLabel[locale]}
               </div>
-              <div className="font-editorial text-lg sm:text-xl text-[#f3d28e] mt-1.5 leading-tight">
+              <div className="font-editorial text-xl text-[#f3d28e] mt-1.5 leading-tight">
                 {stageColor}
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-4 glass-panel rounded-2xl p-4">
+          <div className="col-span-4 glass-panel rounded-2xl p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono-tech text-[10px] tracking-[0.18em] uppercase text-white/50">
                 CURVE V · 45° → 27.2° → 31.2° → 18°C
@@ -293,6 +297,65 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
               <circle cx={svgX} cy={svgY} r="4.5" fill="#fff3ce" stroke="#000" strokeWidth="1.5" />
             </svg>
           </div>
+        </div>
+
+        {/* Mobile compact telemetry bar + mini sparkline freeing center animation stage */}
+        <div className="md:hidden relative z-10 glass-panel rounded-2xl p-3 pointer-events-none">
+          <div className="grid grid-cols-4 gap-1.5 text-center items-center">
+            <div>
+              <div className="font-mono-tech text-[8px] tracking-wider text-white/45 uppercase truncate">
+                {locale === "uk" ? "ЧАС" : "ВРЕМЯ"}
+              </div>
+              <div className="font-mono-tech text-sm font-semibold text-white mt-0.5">
+                {mm}:{ss}
+              </div>
+            </div>
+            <div>
+              <div className="font-mono-tech text-[8px] tracking-wider text-white/45 uppercase truncate">
+                TEMP
+              </div>
+              <div className="font-mono-tech text-sm font-semibold gold-gradient-text mt-0.5">
+                {tempC.toFixed(1)}°C
+              </div>
+            </div>
+            <div>
+              <div className="font-mono-tech text-[8px] tracking-wider text-white/45 uppercase truncate">
+                FORM V
+              </div>
+              <div className="font-mono-tech text-sm font-semibold text-white mt-0.5">
+                {crystalPct.toFixed(0)}%
+              </div>
+            </div>
+            <div>
+              <div className="font-mono-tech text-[8px] tracking-wider text-white/45 uppercase truncate">
+                {locale === "uk" ? "ФАЗА" : "ФАЗА"}
+              </div>
+              <div className="font-editorial text-[11px] text-[#f3d28e] mt-0.5 leading-tight truncate">
+                {stageColor}
+              </div>
+            </div>
+          </div>
+
+          <svg viewBox="0 0 280 56" className="w-full h-10 mt-1.5 overflow-visible">
+            <defs>
+              <linearGradient id="tempGradV2Mob" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor="#f97316" />
+                <stop offset="45%" stopColor="#38bdf8" />
+                <stop offset="72%" stopColor="#e7b866" />
+                <stop offset="100%" stopColor="#fff3ce" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 16 12 L 128 34 L 195 29 L 264 46"
+              fill="none"
+              stroke="url(#tempGradV2Mob)"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx={svgX} cy={mobSvgY} r="7" fill="rgba(231,184,102,0.22)" />
+            <circle cx={svgX} cy={mobSvgY} r="3.5" fill="#fff3ce" stroke="#000" strokeWidth="1.2" />
+          </svg>
         </div>
       </div>
     </section>

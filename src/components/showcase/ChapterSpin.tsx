@@ -42,6 +42,8 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
   const dampedRef = useRef(0);
   const [uiProgress, setUiProgress] = useState(0);
   const [canvasReady, setCanvasReady] = useState(false);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   const isInstant = profile.tier === "instant";
 
@@ -73,7 +75,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         if (isVisible) {
           dirty = true;
           prioritizeSequence("spin");
-          onActive?.();
+          onActiveRef.current?.();
         }
       },
       { threshold: 0.01 }
@@ -116,10 +118,11 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         const riseT = smoothstep(0.0, 0.34, p);
         const glideRight = smoothstep(0.38, 0.52, p);
         const glideLeft = smoothstep(0.66, 0.78, p);
+        const isMobile = (canvas.clientWidth || window.innerWidth) < 768;
 
-        const scale = lerp(0.64, 1.0, riseT);
-        const offsetY = lerp(0.18, 0.0, riseT);
-        const offsetX = glideRight * 0.22 - glideLeft * 0.44;
+        const scale = lerp(0.64, isMobile ? 0.94 : 1.0, riseT);
+        const offsetY = isMobile ? lerp(0.16, -0.09, riseT) : lerp(0.18, 0.0, riseT);
+        const offsetX = isMobile ? 0 : glideRight * 0.22 - glideLeft * 0.44;
 
         const frameIdx = Math.min(total - 1, Math.floor(p * (total - 1)));
         const frameImg = getBestFrame("spin", frameIdx);
@@ -149,7 +152,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   const titleOpacity = isInstant ? 1 : 1 - smoothstep(0.14, 0.34, uiProgress);
   const titleTranslateY = isInstant ? 0 : -smoothstep(0.1, 0.34, uiProgress) * 60;
@@ -175,7 +178,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       ref={sectionRef}
       className={isInstant ? "relative h-screen bg-black" : "relative h-[380vh] bg-black"}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-black">
+      <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex items-center justify-center bg-black">
         {/* Instant LCP Poster (visible immediately at t=0ms with zero frame downloads) */}
         <img
           src="/frames/posters/spin.webp"
@@ -251,54 +254,58 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
           <ArrowDown className="w-4 h-4 text-[#e7b866] animate-bounce" />
         </div>
 
-        {/* Phase 2: Left Editorial Callout ("0.8 мм.") */}
-        <div
-          className="absolute left-6 sm:left-12 lg:left-20 top-1/2 -translate-y-1/2 z-10 max-w-md pointer-events-none transition-transform duration-150"
-          style={{
-            opacity: stat1Opacity,
-            transform: `translate3d(${(1 - stat1Opacity) * -28}px, -50%, 0)`,
-          }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#e7b866]/30 bg-black/75 backdrop-blur-md mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#e7b866]" />
-            <span className="font-mono-tech text-[10px] tracking-[0.2em] text-[#f3d28e] uppercase">
-              CALLEBAUT 70.5% · FORM V
-            </span>
+        {/* Phase 2: Bottom-docked on mobile, Left-aligned on desktop ("0.8 мм.") */}
+        <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:left-12 lg:left-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md pointer-events-none">
+          <div
+            className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
+            style={{
+              opacity: stat1Opacity,
+              transform: `translate3d(0, ${(1 - stat1Opacity) * 16}px, 0)`,
+            }}
+          >
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#e7b866]/30 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e7b866]" />
+              <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#f3d28e] uppercase">
+                CALLEBAUT 70.5% · FORM V
+              </span>
+            </div>
+            <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
+              {SHOWCASE_COPY.spin.stat1Val}
+            </div>
+            <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
+              {SHOWCASE_COPY.spin.stat1Label[locale]}
+            </div>
+            <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
+              {SHOWCASE_COPY.spin.stat1Desc[locale]}
+            </p>
           </div>
-          <div className="text-[clamp(3.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
-            {SHOWCASE_COPY.spin.stat1Val}
-          </div>
-          <div className="font-editorial text-xl sm:text-2xl text-white mt-3">
-            {SHOWCASE_COPY.spin.stat1Label[locale]}
-          </div>
-          <p className="text-sm sm:text-base text-white/70 mt-3 leading-relaxed">
-            {SHOWCASE_COPY.spin.stat1Desc[locale]}
-          </p>
         </div>
 
-        {/* Phase 3: Right Editorial Callout ("5 слоёв.") */}
-        <div
-          className="absolute right-6 sm:right-12 lg:right-20 top-1/2 -translate-y-1/2 z-10 max-w-md text-right pointer-events-none transition-transform duration-150"
-          style={{
-            opacity: stat2Opacity,
-            transform: `translate3d(${(1 - stat2Opacity) * 28}px, -50%, 0)`,
-          }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#2dd4bf]/35 bg-black/75 backdrop-blur-md mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf]" />
-            <span className="font-mono-tech text-[10px] tracking-[0.2em] text-[#99f6e4] uppercase">
-              CRAFTCHOCO ATELIER · KHARKIV
-            </span>
+        {/* Phase 3: Bottom-docked on mobile, Right-aligned on desktop ("5 слоёв.") */}
+        <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:right-12 lg:right-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md md:text-right pointer-events-none">
+          <div
+            className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
+            style={{
+              opacity: stat2Opacity,
+              transform: `translate3d(0, ${(1 - stat2Opacity) * 16}px, 0)`,
+            }}
+          >
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#2dd4bf]/35 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf]" />
+              <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#99f6e4] uppercase">
+                CRAFTCHOCO ATELIER · KHARKIV
+              </span>
+            </div>
+            <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
+              {SHOWCASE_COPY.spin.stat2Val}
+            </div>
+            <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
+              {SHOWCASE_COPY.spin.stat2Label[locale]}
+            </div>
+            <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
+              {SHOWCASE_COPY.spin.stat2Desc[locale]}
+            </p>
           </div>
-          <div className="text-[clamp(3.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
-            {SHOWCASE_COPY.spin.stat2Val}
-          </div>
-          <div className="font-editorial text-xl sm:text-2xl text-white mt-3">
-            {SHOWCASE_COPY.spin.stat2Label[locale]}
-          </div>
-          <p className="text-sm sm:text-base text-white/70 mt-3 leading-relaxed">
-            {SHOWCASE_COPY.spin.stat2Desc[locale]}
-          </p>
         </div>
       </div>
     </section>

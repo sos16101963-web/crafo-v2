@@ -41,8 +41,12 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
   const dampedRef = useRef(0);
   const [uiProgress, setUiProgress] = useState(0);
   const [canvasReady, setCanvasReady] = useState(false);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   const isInstant = profile.tier === "instant";
+  const activeCardIdx = isInstant ? 0 : uiProgress < 0.35 ? 0 : uiProgress < 0.7 ? 1 : 2;
+  const activeMobileCard = SHOWCASE_COPY.ganache.cards[activeCardIdx];
 
   useEffect(() => {
     if (isInstant) return;
@@ -104,7 +108,7 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
           dirty = true;
           prioritizeSequence("ganache");
           soundEngine.setGanacheAmbience(0.65);
-          onActive?.();
+          onActiveRef.current?.();
         } else {
           soundEngine.setGanacheAmbience(0);
         }
@@ -183,7 +187,7 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
       window.removeEventListener("pointermove", onPointerMove);
       soundEngine.setGanacheAmbience(0);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   return (
     <section
@@ -191,7 +195,7 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
       ref={sectionRef}
       className={isInstant ? "relative min-h-screen bg-black" : "relative h-[290vh] bg-black"}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between bg-black py-24 px-6 sm:px-12 lg:px-20">
+      <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-between bg-black pt-20 pb-24 px-4 sm:py-24 sm:px-12 lg:px-20">
         <img
           src="/frames/posters/ganache.webp"
           alt="CraftChoco Ganache Macro"
@@ -218,22 +222,23 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
         />
 
         <div className="relative z-10 max-w-2xl pointer-events-none">
-          <p className="font-mono-tech text-[11px] tracking-[0.26em] text-[#e7b866]/90 uppercase mb-3">
+          <p className="font-mono-tech text-[10px] sm:text-[11px] tracking-[0.26em] text-[#e7b866]/90 uppercase mb-1.5 sm:mb-3">
             {SHOWCASE_COPY.ganache.kicker[locale]}
           </p>
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.04]">
+          <h2 className="text-2xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.04]">
             {SHOWCASE_COPY.ganache.heading[locale]}
           </h2>
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 pointer-events-none">
+        {/* Desktop 3-card row */}
+        <div className="hidden md:grid relative z-10 md:grid-cols-3 gap-6 pointer-events-none">
           {SHOWCASE_COPY.ganache.cards.map((card, idx) => {
             const start = 0.08 + idx * 0.22;
             const op = isInstant ? 1 : smoothstep(start, start + 0.18, uiProgress);
             return (
               <div
                 key={card.tag}
-                className="glass-panel rounded-2xl p-5 sm:p-6 transition-transform duration-200"
+                className="glass-panel rounded-2xl p-6 transition-transform duration-200"
                 style={{
                   opacity: Math.max(0.24, op),
                   transform: `translate3d(0, ${(1 - op) * 28}px, 0)`,
@@ -242,15 +247,42 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
                 <div className="font-mono-tech text-[10px] tracking-[0.2em] text-[#e7b866] uppercase mb-2">
                   {card.tag}
                 </div>
-                <h3 className="font-editorial text-xl sm:text-2xl text-white m-0">
+                <h3 className="font-editorial text-2xl text-white m-0">
                   {card.title[locale]}
                 </h3>
-                <p className="text-xs sm:text-sm text-white/75 mt-2.5 leading-relaxed m-0">
+                <p className="text-sm text-white/75 mt-2.5 leading-relaxed m-0">
                   {card.text[locale]}
                 </p>
               </div>
             );
           })}
+        </div>
+
+        {/* Mobile single active card synced to scroll progress so ganache macro stays unobstructed */}
+        <div className="md:hidden relative z-10 pointer-events-none">
+          <div className="glass-panel rounded-2xl p-3.5 transition-all duration-300">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="font-mono-tech text-[9px] tracking-[0.18em] text-[#e7b866] uppercase">
+                {activeMobileCard.tag}
+              </span>
+              <div className="flex items-center gap-1">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-1 rounded-full transition-all duration-200 ${
+                      i === activeCardIdx ? "w-4 bg-[#e7b866]" : "w-1.5 bg-white/25"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <h3 className="font-editorial text-base text-white m-0 leading-snug">
+              {activeMobileCard.title[locale]}
+            </h3>
+            <p className="text-xs text-white/75 mt-1 leading-relaxed line-clamp-2 m-0">
+              {activeMobileCard.text[locale]}
+            </p>
+          </div>
         </div>
       </div>
     </section>

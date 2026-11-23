@@ -45,6 +45,8 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
   const expandProgress = isInstant ? 1 : smoothstep(0.12, 0.88, uiProgress);
   const activeLayerIdx = Math.min(6, Math.floor(expandProgress * 7));
   const prevLayerRef = useRef(-1);
+  const onActiveRef = useRef(onActive);
+  onActiveRef.current = onActive;
 
   useEffect(() => {
     if (prevLayerRef.current !== -1 && prevLayerRef.current !== activeLayerIdx) {
@@ -91,7 +93,7 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
         if (isVisible) {
           dirty = true;
           prioritizeSequence("layers");
-          onActive?.();
+          onActiveRef.current?.();
         }
       },
       { threshold: 0.01 }
@@ -136,9 +138,10 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
             markedReady = true;
             setCanvasReady(true);
           }
+          const isMobile = (canvas.clientWidth || window.innerWidth) < 768;
           drawSequenceFrame(ctx, frameImg, canvas.width, canvas.height, {
             mode: "contain",
-            scale: 1.0,
+            scale: isMobile ? 0.96 : 1.0,
             offsetY: -0.02,
             featherVoid: true,
           });
@@ -155,7 +158,7 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isInstant, profile.dprCap, onActive]);
+  }, [isInstant, profile.dprCap]);
 
   const layersCount = Math.round(expandProgress * 7);
   const hoursCount = Math.round(expandProgress * 28);
@@ -168,7 +171,7 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
       ref={sectionRef}
       className={isInstant ? "relative min-h-screen bg-black" : "relative h-[340vh] bg-black"}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between bg-black py-24 px-6 sm:px-12 lg:px-20">
+      <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-between bg-black pt-20 pb-24 px-4 sm:py-24 sm:px-12 lg:px-20">
         <img
           src="/frames/posters/layers.webp"
           alt="CraftChoco 7 Layers"
@@ -194,72 +197,75 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
           }}
         />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-start justify-between gap-6 pointer-events-none">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-start justify-between gap-2.5 sm:gap-6 pointer-events-none">
           <div className="max-w-xl">
-            <p className="font-mono-tech text-[11px] tracking-[0.26em] text-[#e7b866]/85 uppercase mb-3">
+            <p className="font-mono-tech text-[10px] sm:text-[11px] tracking-[0.26em] text-[#e7b866]/85 uppercase mb-1 sm:mb-3">
               {SHOWCASE_COPY.lamination.kicker[locale]}
             </p>
-            <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.02]">
+            <h2 className="text-2xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.04]">
               {SHOWCASE_COPY.lamination.heading[locale]}
             </h2>
           </div>
 
-          <div className="flex flex-wrap gap-3 sm:gap-4">
-            <div className="glass-panel rounded-2xl px-4 py-3 min-w-[118px]">
-              <div className="font-mono-tech text-2xl sm:text-3xl font-bold gold-gradient-text">
-                {layersCount} <span className="text-sm text-white/40">/ 7</span>
+          <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-4">
+            <div className="glass-panel rounded-xl sm:rounded-2xl px-2.5 py-1.5 sm:px-4 sm:py-3 sm:min-w-[118px]">
+              <div className="font-mono-tech text-base sm:text-3xl font-bold gold-gradient-text whitespace-nowrap">
+                {layersCount} <span className="text-[11px] sm:text-sm text-white/40">/ 7</span>
               </div>
-              <div className="font-mono-tech text-[10px] tracking-wider uppercase text-white/50 mt-1">
+              <div className="font-mono-tech text-[8px] sm:text-[10px] tracking-wider uppercase text-white/50 mt-0.5 sm:mt-1 leading-tight truncate">
                 {SHOWCASE_COPY.lamination.layersLabel[locale]}
               </div>
             </div>
-            <div className="glass-panel rounded-2xl px-4 py-3 min-w-[118px]">
-              <div className="font-mono-tech text-2xl sm:text-3xl font-bold text-white">
-                {hoursCount} <span className="text-sm text-white/40">ч</span>
+            <div className="glass-panel rounded-xl sm:rounded-2xl px-2.5 py-1.5 sm:px-4 sm:py-3 sm:min-w-[118px]">
+              <div className="font-mono-tech text-base sm:text-3xl font-bold text-white whitespace-nowrap">
+                {hoursCount}{" "}
+                <span className="text-[11px] sm:text-sm text-white/40">
+                  {locale === "uk" ? "год" : "ч"}
+                </span>
               </div>
-              <div className="font-mono-tech text-[10px] tracking-wider uppercase text-white/50 mt-1">
+              <div className="font-mono-tech text-[8px] sm:text-[10px] tracking-wider uppercase text-white/50 mt-0.5 sm:mt-1 leading-tight truncate">
                 {SHOWCASE_COPY.lamination.hoursLabel[locale]}
               </div>
             </div>
-            <div className="glass-panel rounded-2xl px-4 py-3 min-w-[125px]">
-              <div className="font-mono-tech text-2xl sm:text-3xl font-bold text-white">
+            <div className="glass-panel rounded-xl sm:rounded-2xl px-2.5 py-1.5 sm:px-4 sm:py-3 sm:min-w-[125px]">
+              <div className="font-mono-tech text-base sm:text-3xl font-bold text-white whitespace-nowrap">
                 {cocoaPct}%
               </div>
-              <div className="font-mono-tech text-[10px] tracking-wider uppercase text-white/50 mt-1">
+              <div className="font-mono-tech text-[8px] sm:text-[10px] tracking-wider uppercase text-white/50 mt-0.5 sm:mt-1 leading-tight truncate">
                 {SHOWCASE_COPY.lamination.cocoaLabel[locale]}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col gap-4 pointer-events-none">
-          <div className="glass-panel rounded-2xl p-4 sm:p-5 max-w-2xl flex items-start gap-4">
+        <div className="relative z-10 flex flex-col gap-3 sm:gap-4 pointer-events-none">
+          <div className="glass-panel rounded-2xl p-3 sm:p-5 max-w-2xl flex items-start gap-3 sm:gap-4">
             <span
-              className="w-3 h-3 rounded-full mt-1.5 shrink-0"
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full mt-1.5 shrink-0"
               style={{
                 backgroundColor: activeLayer.color,
                 boxShadow: `0 0 16px ${activeLayer.color}`,
               }}
             />
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono-tech text-[11px] text-[#e7b866] tracking-wider">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <span className="font-mono-tech text-[10px] sm:text-[11px] text-[#e7b866] tracking-wider">
                   0{activeLayer.id} / 07
                 </span>
-                <span className="font-mono-tech text-[11px] text-white/45">
+                <span className="font-mono-tech text-[10px] sm:text-[11px] text-white/45">
                   {activeLayer.thickness}
                 </span>
               </div>
-              <div className="text-lg sm:text-xl font-semibold text-white mt-0.5">
+              <div className="text-sm sm:text-xl font-semibold text-white mt-0.5 leading-snug">
                 {activeLayer.title[locale]}
               </div>
-              <p className="text-xs sm:text-sm text-white/65 mt-1 leading-relaxed">
+              <p className="text-[11px] sm:text-sm text-white/65 mt-0.5 sm:mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none m-0">
                 {activeLayer.spec[locale]}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-px rounded-2xl overflow-hidden border border-white/12 bg-white/10">
+          <div className="hidden md:grid grid-cols-5 gap-px rounded-2xl overflow-hidden border border-white/12 bg-white/10">
             {SHOWCASE_COPY.lamination.specs.map((sp) => (
               <div key={sp.k} className="bg-black/85 backdrop-blur-md px-4 py-3">
                 <div className="font-mono-tech text-[10px] tracking-[0.18em] text-white/45 uppercase">
@@ -271,6 +277,22 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile-only clean spec strip below sticky viewport so 7-slice bonbon stays 100% clear */}
+      <div className="md:hidden bg-black px-4 py-5 border-t border-white/10">
+        <div className="grid grid-cols-2 gap-px rounded-2xl overflow-hidden border border-white/12 bg-white/10">
+          {SHOWCASE_COPY.lamination.specs.map((sp) => (
+            <div key={sp.k} className="bg-[#070709] px-3.5 py-2.5">
+              <div className="font-mono-tech text-[9px] tracking-[0.16em] text-white/45 uppercase">
+                {sp.k}
+              </div>
+              <div className="font-mono-tech text-xs font-semibold text-[#f3d28e] mt-0.5">
+                {typeof sp.v === "string" ? sp.v : sp.v[locale]}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
