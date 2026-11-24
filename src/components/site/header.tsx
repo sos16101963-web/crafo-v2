@@ -10,6 +10,7 @@ import { site } from "@/lib/site";
 import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { YouTubeIcon, TikTokIcon } from "@/components/site/icons";
+import { BackButton } from "@/components/site/back-button";
 
 export function Logo({ light = false, locale = "uk" }: { light?: boolean; locale?: Locale }) {
   return (
@@ -166,7 +167,8 @@ export function Header({
       }`}
     >
       <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8">
-        <div className={lightText ? "text-cream shrink-0" : "shrink-0"}>
+        <div className={lightText ? "flex shrink-0 items-center gap-2 text-cream" : "flex shrink-0 items-center gap-2"}>
+          <BackButton locale={locale} variant="header" lightText={lightText} />
           <Logo light={lightText} locale={locale} />
         </div>
 

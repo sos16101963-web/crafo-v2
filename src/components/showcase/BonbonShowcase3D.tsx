@@ -13,6 +13,7 @@ import {
 import type { SequenceId } from "@/lib/showcase/sequenceManifest";
 import { CHAPTER_NAV, SHOWCASE_COPY } from "@/lib/showcase/content";
 import { soundEngine } from "@/lib/showcase/soundEngine";
+import { useCart } from "@/store/cart";
 import { ChapterSpin } from "./ChapterSpin";
 import { ChapterCrunch } from "./ChapterCrunch";
 import { ChapterLamination } from "./ChapterLamination";
@@ -51,9 +52,20 @@ export const BonbonShowcase3D: React.FC<{
   const [inShowcase, setInShowcase] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [soundBannerDismissed, setSoundBannerDismissed] = useState(false);
+  const cartOpen = useCart((s) => s.isOpen);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+
+  useEffect(() => {
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    if (cartOpen) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+  }, [cartOpen]);
 
   // 1. Detect device profile & wire Poster-First first-interaction streaming unlock
   useEffect(() => {
@@ -219,7 +231,7 @@ export const BonbonShowcase3D: React.FC<{
   return (
     <div id="showcase-3d-root" ref={rootRef} className="relative bg-black text-white overflow-x-clip">
       {/* Right-edge desktop chapter progress rail (only inside 3D showcase) */}
-      {inShowcase && (
+      {inShowcase && !cartOpen && (
         <nav
           aria-label={locale === "uk" ? "Навігація 3D-главами" : "Навигация по 3D-главам"}
           className="hidden lg:flex fixed right-5 top-1/2 -translate-y-1/2 z-30 flex-col gap-2.5 px-2.5 py-3 rounded-full glass-panel"
@@ -313,7 +325,7 @@ export const BonbonShowcase3D: React.FC<{
       )}
 
       {/* Floating Audio Activation Prompt (desktop/tablet; mobile uses clean top-bar toggle) */}
-      {inShowcase && !soundOn && !soundBannerDismissed && (
+      {inShowcase && !cartOpen && !soundOn && !soundBannerDismissed && (
         <div className="hidden md:flex fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-40 items-center gap-2 glass-panel rounded-full pl-3.5 pr-2 py-2 shadow-[0_12px_40px_rgba(231,184,102,0.18)] border border-[#e7b866]/45">
           <button
             type="button"

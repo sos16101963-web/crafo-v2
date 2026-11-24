@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, CheckCircle2, Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useCart } from "@/store/cart";
 import { trackEvent, trackFb } from "@/lib/analytics";
 import { formatPrice, formatProductPrice, catalogFor } from "@/lib/products";
+import { productPath } from "@/lib/slugs";
 import { site } from "@/lib/site";
 import { toast } from "sonner";
 import { getDict } from "@/lib/i18n";
@@ -126,21 +128,28 @@ export function CartSheet({ locale }: { locale: Locale }) {
       setSending(false);
       toast.error(
         locale === "ru"
-          ? "Помилка зв'язку. Спробуйте ще раз або зателефонуйте нам."
+          ? "Ошибка связи. Попробуйте ещё раз или позвоните нам."
           : "Помилка зв'язку. Спробуйте ще раз або зателефонуйте нам."
       );
     }
   };
 
   const handleClose = (open: boolean) => {
-    if (!open && orderDone) setOrderDone(false);
-    close();
+    if (!open) {
+      if (orderDone) setOrderDone(false);
+      close();
+    }
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="flex w-full flex-col bg-cream p-0 sm:max-w-md">
-        <SheetHeader className="border-b border-border bg-choco-950 px-6 py-5 text-left">
+      <SheetContent
+        side="right"
+        data-lenis-prevent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="flex w-full flex-col bg-cream p-0 sm:max-w-[540px] pointer-events-auto [&_[data-slot=sheet-close]]:text-cream"
+      >
+        <SheetHeader className="shrink-0 border-b border-border bg-choco-950 px-5 sm:px-6 py-4 text-left">
           <SheetTitle className="flex items-center gap-2.5 font-display text-xl text-cream">
             <ShoppingBag className="h-5 w-5 text-gold-400" aria-hidden="true" />
             {d.cart.title}
@@ -184,200 +193,226 @@ export function CartSheet({ locale }: { locale: Locale }) {
           </div>
         ) : (
           <>
-            <div className="border-b border-border px-6 py-4">
-              {total >= freeFrom ? (
-                <p className="flex items-center gap-2 text-sm font-semibold text-green-800">
-                  <Truck className="h-4.5 w-4.5" aria-hidden="true" />
-                  {d.cart.freeShippingReached}
-                </p>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold text-choco-800">
-                    {d.cart.freeShippingLeft(formatPrice(remaining, locale))}{" "}
-                    <span className="whitespace-nowrap font-normal text-choco-500">
-                      {d.cart.freeShippingGain(formatPrice(site.courierPrice, locale))}
-                    </span>
+            {/* Единая прокручиваемая область: прогресс доставки + товары + спец-предложение — ничего не сжимается на невысоких экранах */}
+            <div data-lenis-prevent className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin">
+              <div className="border-b border-border px-5 sm:px-6 py-3.5">
+                {total >= freeFrom ? (
+                  <p className="flex items-center gap-2 text-sm font-semibold text-green-800">
+                    <Truck className="h-4.5 w-4.5" aria-hidden="true" />
+                    {d.cart.freeShippingReached}
                   </p>
-                  <Progress value={progress} className="mt-2 h-2 bg-cream-200 [&>div]:bg-gold-500" aria-label="Прогресс до бесплатной доставки" />
-                  {suggestions.length > 0 && (
-                    <div className="mt-2.5">
-                      <p className="text-xs font-semibold text-choco-500">{d.cart.suggest}</p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {suggestions.map((p) => (
-                          <button
-                            key={p.id}
-                            onClick={() => {
-                              add(p.id);
-                              toast.success(d.cart.addedToast(p.name), {
-                                description: d.cart.suggestToast(formatPrice(Math.max(0, freeFrom - (total + p.price)), locale)),
-                              });
-                            }}
-                            className="rounded-full border border-gold-500/40 bg-gold-500/10 px-3 py-1.5 text-xs font-semibold text-choco-800 transition-colors hover:border-gold-500 hover:bg-gold-500/20"
-                          >
-                            + {p.name} · {formatProductPrice(p)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <ul className="flex-1 space-y-4 overflow-y-auto px-6 py-5 scrollbar-thin" aria-label="Товары в корзине">
-              {lines.map((l) => (
-                <li key={l.id} className="flex gap-3.5 rounded-2xl border border-border bg-white/80 p-3.5">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-                    <Image src={l.product.image} alt={l.product.alt} fill sizes="80px" className="object-cover" />
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold leading-snug text-choco-900">{l.product.name}</p>
-                      <button
-                        onClick={() => remove(l.id)}
-                        aria-label={d.cart.remove(l.product.name)}
-                        className="text-choco-400 transition-colors hover:text-red-800"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p className="mt-0.5 text-xs text-choco-500">
-                      {l.product.weight}
-                      {l.product.cocoa ? d.cart.cocoa(l.product.cocoa) : ""}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between pt-2">
-                      <div className="flex items-center gap-1.5" role="group" aria-label={d.cart.qtyGroup(l.product.name)}>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7.5 w-7.5 rounded-full"
-                          onClick={() => setQty(l.id, l.qty - 1)}
-                          aria-label={d.cart.qtyDec}
-                        >
-                          <Minus className="h-3.5 w-3.5" />
-                        </Button>
-                        <span className="w-7 text-center text-sm font-bold text-choco-900">{l.qty}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7.5 w-7.5 rounded-full"
-                          onClick={() => setQty(l.id, l.qty + 1)}
-                          aria-label={d.cart.qtyInc}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                      <div className="text-right">
-                        {l.id === "set-four" && hasOtherItems && (
-                          <span className="block text-[11px] font-medium text-choco-400 line-through">
-                            {formatPrice(l.product.price * l.qty)}
-                          </span>
-                        )}
-                        <p className="font-display text-lg font-bold text-choco-900">
-                          {formatPrice(getItemPrice(l.id, l.product.price) * l.qty)}
-                        </p>
-                        {l.id === "set-four" && hasOtherItems && (
-                          <span className="inline-block rounded-full bg-gold-500/20 px-2 py-0.5 text-[10px] font-bold text-choco-900">
-                            -30% спецціна
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            {/* Спец-пропозиція допродажу (Upsell) «Чотири настрої» зі знижкою 30% */}
-            {lines.length > 0 && !lines.some((l) => l.id === "set-four") && (
-              <div className="mx-6 my-2 overflow-hidden rounded-2xl border-2 border-dashed border-gold-500/60 bg-gradient-to-r from-gold-500/10 via-cream-100 to-gold-500/15 p-3.5 shadow-xs">
-                <div className="flex items-center gap-3">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gold-500/30 shadow-xs">
-                    <Image
-                      src="/images/set-four.webp"
-                      alt={locale === "uk" ? "Набір «Чотири настрої»" : "Набор «Четыре настроения»"}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[10px] font-black uppercase text-choco-950">
-                        {locale === "uk" ? "-30% для себе" : "-30% для себя"}
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-choco-800">
+                      {d.cart.freeShippingLeft(formatPrice(remaining, locale))}{" "}
+                      <span className="whitespace-nowrap font-normal text-choco-500">
+                        {d.cart.freeShippingGain(formatPrice(site.courierPrice, locale))}
                       </span>
-                    </div>
-                    <p className="mt-1 text-xs font-bold leading-tight text-choco-900 truncate">
-                      {locale === "uk" ? "🎁 «Чотири настрої» (4 цукерки)" : "🎁 «Четыре настроения» (4 конфеты)"}
                     </p>
-                    <p className="text-[11px] text-choco-600 truncate">
-                      {locale === "uk" ? "Солодкий комплімент до ранкової кави" : "Сладкий комплимент к утреннему кофе"}
-                    </p>
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="font-display text-sm font-bold text-choco-950">100 ₴</span>
-                        <span className="text-xs text-choco-400 line-through">130 ₴</span>
+                    <Progress value={progress} className="mt-2 h-2 bg-cream-200 [&>div]:bg-gold-500" aria-label="Прогресс до бесплатной доставки" />
+                    {suggestions.length > 0 && (
+                      <div className="mt-2.5">
+                        <p className="text-xs font-semibold text-choco-500">{d.cart.suggest}</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {suggestions.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                add(p.id);
+                                toast.success(d.cart.addedToast(p.name), {
+                                  description: d.cart.suggestToast(formatPrice(Math.max(0, freeFrom - (total + p.price)), locale)),
+                                });
+                              }}
+                              className="rounded-full border border-gold-500/40 bg-gold-500/10 px-3 py-1.5 text-xs font-semibold text-choco-800 transition-colors hover:border-gold-500 hover:bg-gold-500/20 cursor-pointer"
+                            >
+                              + {p.name} · {formatProductPrice(p, locale)}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => {
-                          add("set-four");
-                          toast.success(
-                            locale === "uk" ? "Набір «Чотири настрої» додано!" : "Набор «Четыре настроения» добавлен!",
-                            {
-                              description: locale === "uk" ? "Знижка 30% застосована автоматично" : "Скидка 30% применена автоматически",
-                            }
-                          );
-                        }}
-                        className="h-7.5 rounded-lg bg-choco-900 px-3 text-xs font-bold text-gold-300 hover:bg-choco-800"
+                    )}
+                  </>
+                )}
+              </div>
+
+              <ul className="space-y-3.5 px-5 sm:px-6 py-4" aria-label="Товары в корзине">
+                {lines.map((l) => {
+                  const href = productPath(l.product.id, locale);
+                  return (
+                    <li key={l.id} className="flex gap-4 rounded-2xl border border-border bg-white/90 p-3.5 sm:p-4 shadow-xs">
+                      <Link
+                        href={href}
+                        onClick={close}
+                        className="relative h-20 w-20 sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-xl border border-border/60"
                       >
-                        {locale === "uk" ? "+ Додати за 100 ₴" : "+ Добавить за 100 ₴"}
-                      </Button>
+                        <Image src={l.product.image} alt={l.product.alt} fill sizes="96px" className="object-cover transition-transform duration-300 hover:scale-105" />
+                      </Link>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link
+                            href={href}
+                            onClick={close}
+                            className="text-sm sm:text-[15px] font-bold leading-snug text-choco-900 hover:text-gold-700 transition-colors inline-flex items-start gap-1"
+                          >
+                            <span>{l.product.name}</span>
+                            <ArrowUpRight className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gold-600" aria-hidden="true" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => remove(l.id)}
+                            aria-label={d.cart.remove(l.product.name)}
+                            className="shrink-0 text-choco-400 transition-colors hover:text-red-800 cursor-pointer p-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="mt-0.5 text-xs text-choco-500">
+                          {l.product.weight}
+                          {l.product.cocoa ? d.cart.cocoa(l.product.cocoa) : ""}
+                        </p>
+                        <div className="mt-auto flex items-center justify-between gap-2 pt-2.5">
+                          <div className="flex items-center gap-1.5" role="group" aria-label={d.cart.qtyGroup(l.product.name)}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 rounded-full"
+                              onClick={() => setQty(l.id, l.qty - 1)}
+                              aria-label={d.cart.qtyDec}
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </Button>
+                            <span className="w-7 text-center text-sm font-bold text-choco-900">{l.qty}</span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 rounded-full"
+                              onClick={() => setQty(l.id, l.qty + 1)}
+                              aria-label={d.cart.qtyInc}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <div className="text-right whitespace-nowrap shrink-0">
+                            {l.id === "set-four" && hasOtherItems && (
+                              <span className="block text-[11px] font-medium text-choco-400 line-through">
+                                {formatPrice(l.product.price * l.qty, locale)}
+                              </span>
+                            )}
+                            <p className="font-display text-lg font-bold text-choco-900 whitespace-nowrap">
+                              {formatPrice(getItemPrice(l.id, l.product.price) * l.qty, locale)}
+                            </p>
+                            {l.id === "set-four" && hasOtherItems && (
+                              <span className="inline-block rounded-full bg-gold-500/20 px-2 py-0.5 text-[10px] font-bold text-choco-900">
+                                -30% спецціна
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* Спец-пропозиція допродажу (Upsell) «Чотири настрої» зі знижкою 30% */}
+              {lines.length > 0 && !lines.some((l) => l.id === "set-four") && (
+                <div className="mx-5 sm:mx-6 mb-4 shrink-0 rounded-2xl border-2 border-dashed border-gold-500/60 bg-gradient-to-r from-gold-500/10 via-cream-100 to-gold-500/15 p-3.5 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gold-500/30 shadow-xs">
+                      <Image
+                        src="/images/set-four.webp"
+                        alt={locale === "uk" ? "Набір «Чотири настрої»" : "Набор «Четыре настроения»"}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[10px] font-black uppercase text-choco-950">
+                          {locale === "uk" ? "-30% для себе" : "-30% для себя"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs font-bold leading-tight text-choco-900 truncate">
+                        {locale === "uk" ? "🎁 «Чотири настрої» (4 цукерки)" : "🎁 «Четыре настроения» (4 конфеты)"}
+                      </p>
+                      <p className="text-[11px] text-choco-600 truncate">
+                        {locale === "uk" ? "Солодкий комплімент до ранкової кави" : "Сладкий комплимент к утреннему кофе"}
+                      </p>
+                      <div className="mt-1.5 flex items-center justify-between gap-2">
+                        <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                          <span className="font-display text-sm font-bold text-choco-950">100 ₴</span>
+                          <span className="text-xs text-choco-400 line-through">130 ₴</span>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            add("set-four");
+                            toast.success(
+                              locale === "uk" ? "Набір «Чотири настрої» додано!" : "Набор «Четыре настроения» добавлен!",
+                              {
+                                description: locale === "uk" ? "Знижка 30% застосована автоматично" : "Скидка 30% применена автоматически",
+                              }
+                            );
+                          }}
+                          className="h-8 rounded-lg bg-choco-900 px-3 text-xs font-bold text-gold-300 hover:bg-choco-800 shrink-0"
+                        >
+                          {locale === "uk" ? "+ Додати за 100 ₴" : "+ Добавить за 100 ₴"}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            <div className="border-t border-border bg-white/60 px-6 py-5">
+            <div className="shrink-0 border-t border-border bg-white/80 px-5 sm:px-6 py-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-choco-600">{d.cart.total}</span>
-                <span className="font-display text-2xl font-bold text-choco-900">{formatPrice(total)}</span>
+                <span className="text-sm font-medium text-choco-600">{d.cart.total}</span>
+                <span className="font-display text-2xl font-bold text-choco-900">{formatPrice(total, locale)}</span>
               </div>
-              <Separator className="my-4" />
-              <form onSubmit={handleCheckout} className="space-y-3" aria-label="Оформление заказа">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+              <Separator className="my-3" />
+              <form onSubmit={handleCheckout} className="space-y-2.5" aria-label="Оформление заказа">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
                     <Label htmlFor="cart-name" className="sr-only">
                       {d.cart.name}
                     </Label>
                     <Input
                       id="cart-name"
+                      name="name"
+                      autoComplete="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder={d.cart.namePlaceholder}
                       maxLength={50}
-                      className="h-11 rounded-xl bg-white"
+                      className="relative z-10 h-11 rounded-xl bg-white text-choco-950 cursor-text pointer-events-auto"
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <Label htmlFor="cart-phone" className="sr-only">
                       {d.cart.phone}
                     </Label>
                     <Input
                       id="cart-phone"
+                      name="tel"
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+380 (__) ___-__-__"
                       maxLength={18}
-                      className="h-11 rounded-xl bg-white"
+                      className="relative z-10 h-11 rounded-xl bg-white text-choco-950 cursor-text pointer-events-auto"
                     />
                   </div>
                 </div>
                 {/* Четкая гарантия прямо перед кнопкой заказа */}
-                <div className="rounded-xl border border-gold-500/35 bg-gold-500/15 p-3 text-center text-xs font-semibold text-choco-950">
+                <div className="rounded-xl border border-gold-500/35 bg-gold-500/15 px-3 py-2 text-center text-[11px] font-semibold text-choco-950 leading-snug">
                   🛡️ {locale === "uk"
                     ? "Оплата при отриманні кур'єру або карткою/IBAN після підтвердження замовлення з майстром"
                     : "Оплата при получении курьеру или картой/IBAN после подтверждения заказа с мастером"}
@@ -385,11 +420,11 @@ export function CartSheet({ locale }: { locale: Locale }) {
                 <Button
                   type="submit"
                   disabled={sending}
-                  className="h-12 w-full rounded-full bg-gold-500 text-base font-bold text-choco-950 hover:bg-gold-400 disabled:opacity-60"
+                  className="h-11 w-full rounded-full bg-gold-500 text-base font-bold text-choco-950 hover:bg-gold-400 disabled:opacity-60 cursor-pointer"
                 >
                   {sending ? d.cart.checking : d.cart.checkout(formatPrice(total, locale))}
                 </Button>
-                <p className="text-center text-xs text-choco-500">
+                <p className="text-center text-[11px] text-choco-500">
                   {d.cart.checkoutNote}
                 </p>
               </form>

@@ -1,10 +1,25 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+import { ArrowUpRight, ShoppingBag } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
-import { FLAVORS, SHOWCASE_COPY } from "@/lib/showcase/content";
+import { FLAVORS, SHOWCASE_COPY, type FlavorSpec } from "@/lib/showcase/content";
+import { productPath } from "@/lib/slugs";
+import { soundEngine } from "@/lib/showcase/soundEngine";
+import { useCart } from "@/store/cart";
+
+const FLAVOR_TO_SET_ID: Record<FlavorSpec["id"], string> = {
+  passion: "set-sixteen",
+  raspberry: "set-twelve",
+  pistachio: "set-nine",
+  truffle: "set-six",
+};
 
 export const ChapterLineup: React.FC<{ locale: Locale }> = ({ locale }) => {
+  const addItem = useCart((s) => s.add);
+  const openCart = useCart((s) => s.open);
+
   return (
     <section
       id="lineup"
@@ -21,36 +36,66 @@ export const ChapterLineup: React.FC<{ locale: Locale }> = ({ locale }) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-16">
-          {FLAVORS.map((flv) => (
-            <article
-              key={flv.id}
-              className="group rounded-3xl overflow-hidden border border-white/12 bg-[#070709] hover:border-[#e7b866]/55 transition-all duration-300"
-            >
-              <div className="relative aspect-[16/10] bg-black overflow-hidden">
-                <img
-                  src={flv.plate}
-                  alt={flv.name[locale]}
-                  loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <span
-                  className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full font-mono-tech text-[10px] bg-black/75 border border-white/15"
-                  style={{ color: flv.accentHex }}
-                >
-                  {flv.cocoaPct}
-                </span>
-              </div>
-              <div className="p-5">
-                <h3 className="text-xl font-semibold text-white m-0">{flv.name[locale]}</h3>
-                <p className="font-display italic text-sm text-[#f3d28e] mt-1 mb-3">
-                  {flv.subtitle[locale]}
-                </p>
-                <p className="text-xs text-white/60 leading-relaxed m-0">
-                  {flv.fillingArchitecture[locale]}
-                </p>
-              </div>
-            </article>
-          ))}
+          {FLAVORS.map((flv) => {
+            const setId = FLAVOR_TO_SET_ID[flv.id];
+            const href = productPath(setId, locale);
+            return (
+              <article
+                key={flv.id}
+                className="group flex flex-col rounded-3xl overflow-hidden border border-white/12 bg-[#070709] hover:border-[#e7b866]/55 transition-all duration-300"
+              >
+                <Link href={href} className="relative aspect-[16/10] bg-black overflow-hidden block">
+                  <img
+                    src={flv.plate}
+                    alt={flv.name[locale]}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span
+                    className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full font-mono-tech text-[10px] bg-black/75 border border-white/15"
+                    style={{ color: flv.accentHex }}
+                  >
+                    {flv.cocoaPct}
+                  </span>
+                </Link>
+                <div className="p-5 flex flex-1 flex-col">
+                  <Link href={href} className="no-underline">
+                    <h3 className="text-xl font-semibold text-white group-hover:text-[#fff3ce] transition-colors m-0">
+                      {flv.name[locale]}
+                    </h3>
+                  </Link>
+                  <p className="font-display italic text-sm text-[#f3d28e] mt-1 mb-3">
+                    {flv.subtitle[locale]}
+                  </p>
+                  <p className="text-xs text-white/60 leading-relaxed m-0 flex-1">
+                    {flv.fillingArchitecture[locale]}
+                  </p>
+
+                  <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between gap-2">
+                    <Link
+                      href={href}
+                      className="inline-flex items-center gap-1 font-mono-tech text-[11px] text-[#e7b866] hover:text-[#fff3ce] no-underline"
+                    >
+                      {locale === "uk" ? "Розглянути" : "Подробнее"}
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEngine.playTick();
+                        addItem(setId, 1);
+                        openCart();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-[#e7b866] hover:text-black text-white px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer border-0"
+                    >
+                      <ShoppingBag className="w-3 h-3" />
+                      {locale === "uk" ? "У кошик" : "В корзину"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         <div className="rounded-3xl overflow-hidden border border-white/12 bg-[#070709]">
@@ -162,11 +207,19 @@ export const ChapterLineup: React.FC<{ locale: Locale }> = ({ locale }) => {
                   <td className="py-4 px-6 font-mono-tech text-xs text-white/50">
                     {SHOWCASE_COPY.lineup.specHeaders.sets[locale]}
                   </td>
-                  {FLAVORS.map((flv) => (
-                    <td key={flv.id} className="py-4 px-6 text-xs text-white/70">
-                      {flv.setsIncluded[locale]}
-                    </td>
-                  ))}
+                  {FLAVORS.map((flv) => {
+                    const href = productPath(FLAVOR_TO_SET_ID[flv.id], locale);
+                    return (
+                      <td key={flv.id} className="py-4 px-6 text-xs">
+                        <Link
+                          href={href}
+                          className="text-[#f3d28e] hover:text-white underline decoration-[#e7b866]/40 underline-offset-4 transition-colors"
+                        >
+                          {flv.setsIncluded[locale]}
+                        </Link>
+                      </td>
+                    );
+                  })}
                 </tr>
               </tbody>
             </table>

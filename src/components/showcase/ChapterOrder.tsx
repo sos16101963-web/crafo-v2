@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Minus, Plus, CheckCircle2, ArrowDownRight, Clock, ShoppingBag } from "lucide-react";
+import Link from "next/link";
+import { Minus, Plus, CheckCircle2, ArrowDownRight, ArrowUpRight, Clock, ShoppingBag } from "lucide-react";
 import { formatPrice, type Locale } from "@/lib/i18n";
 import { catalogFor } from "@/lib/products";
+import { productPath } from "@/lib/slugs";
 import { FEATURED_SET_IDS, SHOWCASE_COPY } from "@/lib/showcase/content";
 import { soundEngine } from "@/lib/showcase/soundEngine";
 import { useCart } from "@/store/cart";
@@ -110,28 +112,36 @@ export const ChapterOrder: React.FC<{
           <div className="space-y-4 mb-8">
             {featuredSets.map((item) => {
               const qty = quantities[item.id] ?? 0;
+              const href = productPath(item.id, locale);
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#e7b866]/35 transition-colors"
+                  className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#e7b866]/45 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
+                  <Link
+                    href={href}
+                    className="group flex items-center gap-4 min-w-0 flex-1 no-underline"
+                  >
                     <img
                       src={item.image}
                       alt={item.alt}
                       loading="lazy"
-                      className="w-16 h-16 rounded-xl object-cover border border-white/15 shrink-0"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-white/15 shrink-0 group-hover:scale-105 group-hover:border-[#e7b866]/60 transition-all"
                     />
-                    <div>
-                      <div className="text-base sm:text-lg font-semibold text-white">
+                    <div className="min-w-0">
+                      <div className="text-base sm:text-lg font-semibold text-white group-hover:text-[#fff3ce] transition-colors">
                         {item.name}
                       </div>
                       <div className="text-xs text-white/55 mt-0.5">{item.weight}</div>
+                      <span className="mt-1 inline-flex items-center gap-1 font-mono-tech text-[11px] text-[#e7b866] group-hover:underline">
+                        {locale === "uk" ? "Розглянути набір" : "Подробнее о наборе"}
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </span>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-5">
-                    <div className="font-mono-tech text-lg font-semibold text-[#f3d28e]">
+                  <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 sm:gap-4 shrink-0">
+                    <div className="font-mono-tech text-lg font-semibold text-[#f3d28e] whitespace-nowrap shrink-0">
                       {item.priceFrom
                         ? `${locale === "uk" ? "від " : "от "}${formatPrice(item.price, locale)}`
                         : formatPrice(item.price, locale)}
@@ -158,6 +168,19 @@ export const ChapterOrder: React.FC<{
                         <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEngine.playTick();
+                        addItem(item.id, Math.max(1, qty));
+                        openCart();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#e7b866]/55 bg-[#e7b866]/15 px-3.5 py-2 text-xs font-semibold text-[#fff3ce] hover:bg-[#e7b866] hover:text-black transition-all cursor-pointer whitespace-nowrap"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      {locale === "uk" ? "Замовити" : "Заказать"}
+                    </button>
                   </div>
                 </div>
               );

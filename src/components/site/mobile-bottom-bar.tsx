@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { Box, Grid2X2, Sparkles, ShoppingBag } from "lucide-react";
+import { BackButton } from "@/components/site/back-button";
 import { useCart } from "@/store/cart";
 import type { Locale } from "@/lib/i18n";
 
@@ -29,10 +30,12 @@ export function MobileBottomBar({
       aria-label={locale === "uk" ? "Швидка панель" : "Быстрая панель"}
       className="fixed inset-x-3 bottom-3 z-40 lg:hidden pb-[env(safe-area-inset-bottom)] pointer-events-none"
     >
-      <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1 rounded-2xl border border-[#e7b866]/35 bg-[#120c08]/92 p-1.5 text-cream shadow-[0_14px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+      <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-5 gap-1 rounded-2xl border border-[#e7b866]/35 bg-[#120c08]/92 p-1.5 text-cream shadow-[0_14px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+        <BackButton locale={locale} variant="dock" />
+
         <a
           href={showcaseHref}
-          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[11px] font-medium text-cream/85 hover:bg-white/10 active:scale-95 transition-all"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[10px] font-medium text-cream/85 hover:bg-white/10 active:scale-95 transition-all"
         >
           <Box className="h-4 w-4 text-[#e7b866]" />
           <span>3D</span>
@@ -40,7 +43,7 @@ export function MobileBottomBar({
 
         <a
           href={catalogHref}
-          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[11px] font-medium text-cream/85 hover:bg-white/10 active:scale-95 transition-all"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[10px] font-medium text-cream/85 hover:bg-white/10 active:scale-95 transition-all"
         >
           <Grid2X2 className="h-4 w-4 text-[#e7b866]" />
           <span>{locale === "uk" ? "Каталог" : "Каталог"}</span>
@@ -48,7 +51,7 @@ export function MobileBottomBar({
 
         <Link
           href={sommelierHref}
-          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[11px] font-medium text-[#fff3ce] hover:bg-white/10 active:scale-95 transition-all"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[10px] font-medium text-[#fff3ce] hover:bg-white/10 active:scale-95 transition-all"
         >
           <Sparkles className="h-4 w-4 text-[#e7b866]" />
           <span>{locale === "uk" ? "Сомельє" : "Сомелье"}</span>
@@ -57,7 +60,7 @@ export function MobileBottomBar({
         <button
           type="button"
           onClick={openCart}
-          className="relative flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gradient-to-r from-[#e7b866] to-[#f3d28e] py-2 text-[11px] font-bold text-black active:scale-95 transition-all cursor-pointer border-0"
+          className="relative flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gradient-to-r from-[#e7b866] to-[#f3d28e] py-2 text-[10px] font-bold text-black active:scale-95 transition-all cursor-pointer border-0"
         >
           <ShoppingBag className="h-4 w-4" />
           <span>{locale === "uk" ? "Кошик" : "Корзина"}</span>
