@@ -236,7 +236,26 @@ export function CartSheet({ locale }: { locale: Locale }) {
                 )}
               </div>
 
-              <ul className="space-y-3.5 px-5 sm:px-6 py-4" aria-label="Товары в корзине">
+              <div className="flex items-center justify-between px-5 sm:px-6 pt-3 pb-1">
+                <span className="text-xs font-medium text-choco-500">
+                  {locale === "uk"
+                    ? `Обрано позицій: ${lines.length}`
+                    : `Выбрано позиций: ${lines.length}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clear();
+                    toast.success(locale === "uk" ? "Кошик очищено" : "Корзина очищена");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-choco-500 transition-colors hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  {locale === "uk" ? "Очистити кошик" : "Очистить корзину"}
+                </button>
+              </div>
+
+              <ul className="space-y-3.5 px-5 sm:px-6 pt-2 pb-4" aria-label="Товары в корзине">
                 {lines.map((l) => {
                   const href = productPath(l.product.id, locale);
                   return (
@@ -405,7 +424,7 @@ export function CartSheet({ locale }: { locale: Locale }) {
                       autoComplete="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+380 (__) ___-__-__"
+                      placeholder={locale === "uk" ? "Телефон" : "Телефон"}
                       maxLength={18}
                       className="relative z-10 h-11 rounded-xl bg-white text-choco-950 cursor-text pointer-events-auto"
                     />
