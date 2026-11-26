@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
       { source: "/plates/:path*", headers: immutableCache },
       { source: "/fonts/:path*", headers: immutableCache },
       { source: "/images/:path*", headers: immutableCache },
+      { source: "/audio/:path*", headers: immutableCache },
       {
         source: "/(.*)",
         headers: [

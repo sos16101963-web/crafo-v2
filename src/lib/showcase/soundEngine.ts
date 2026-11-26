@@ -1,7 +1,21 @@
+const CRACK_AUDIO_URL = '/audio/bonbon-crack.mp3';
+const AMBIENT_MUSIC_URL = '/audio/atelier-ambient.mp3';
+const MUSIC_TARGET_GAIN = 0.34;
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private bus: AudioNode | null = null;
   private enabled = false;
+  private showcaseActive = true;
+  private visibilityWired = false;
+
+  private crackBuffer: AudioBuffer | null = null;
+  private crackLoadPromise: Promise<AudioBuffer | null> | null = null;
+  private musicBuffer: AudioBuffer | null = null;
+  private musicLoadPromise: Promise<AudioBuffer | null> | null = null;
+  private musicSource: AudioBufferSourceNode | null = null;
+  private musicGain: GainNode | null = null;
+  private musicStopTimer: number | null = null;
 
   private humGain: GainNode | null = null;
   private humOsc1: OscillatorNode | null = null;
@@ -43,6 +57,19 @@ class SoundEngine {
       master.connect(this.ctx.destination);
       this.bus = comp;
     }
+    if (!this.visibilityWired && typeof document !== 'undefined') {
+      this.visibilityWired = true;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.muteAllDrones();
+          this.fadeOutMusic(true);
+          void this.ctx?.suspend();
+        } else if (this.enabled && this.showcaseActive && this.ctx) {
+          void this.ctx.resume();
+          this.startMusic(this.ctx);
+        }
+      });
+    }
     if (this.ctx.state === 'suspended') {
       void this.ctx.resume();
     }
@@ -53,16 +80,140 @@ class SoundEngine {
     return this.bus ?? ctx.destination;
   }
 
+  private async loadAudioBuffer(ctx: AudioContext, url: string): Promise<AudioBuffer | null> {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const arr = await res.arrayBuffer();
+      return await ctx.decodeAudioData(arr);
+    } catch {
+      return null;
+    }
+  }
+
+  private preloadAssets(ctx: AudioContext): void {
+    if (!this.crackBuffer && !this.crackLoadPromise) {
+      this.crackLoadPromise = this.loadAudioBuffer(ctx, CRACK_AUDIO_URL).then((buf) => {
+        if (buf) this.crackBuffer = buf;
+        this.crackLoadPromise = null;
+        return buf;
+      });
+    }
+    if (!this.musicBuffer && !this.musicLoadPromise) {
+      this.musicLoadPromise = this.loadAudioBuffer(ctx, AMBIENT_MUSIC_URL).then((buf) => {
+        if (buf) {
+          this.musicBuffer = buf;
+          if (
+            this.enabled &&
+            this.showcaseActive &&
+            (typeof document === 'undefined' || !document.hidden)
+          ) {
+            this.startMusic(ctx);
+          }
+        }
+        this.musicLoadPromise = null;
+        return buf;
+      });
+    }
+  }
+
+  private startMusic(ctx: AudioContext): void {
+    if (typeof window !== 'undefined' && this.musicStopTimer !== null) {
+      window.clearTimeout(this.musicStopTimer);
+      this.musicStopTimer = null;
+    }
+    if (!this.musicBuffer) {
+      this.preloadAssets(ctx);
+      return;
+    }
+    if (!this.musicGain) {
+      const mg = ctx.createGain();
+      mg.gain.value = 0.0001;
+      mg.connect(this.getDest(ctx));
+      this.musicGain = mg;
+    }
+    if (!this.musicSource) {
+      const src = ctx.createBufferSource();
+      src.buffer = this.musicBuffer;
+      src.loop = true;
+      src.connect(this.musicGain);
+      src.start(0);
+      this.musicSource = src;
+    }
+    const now = ctx.currentTime;
+    this.musicGain.gain.cancelScheduledValues(now);
+    this.musicGain.gain.setTargetAtTime(MUSIC_TARGET_GAIN, now, 0.35);
+  }
+
+  private fadeOutMusic(stopAfterFade = true): void {
+    if (!this.ctx || !this.musicGain) return;
+    const now = this.ctx.currentTime;
+    this.musicGain.gain.cancelScheduledValues(now);
+    this.musicGain.gain.setTargetAtTime(0.0001, now, 0.22);
+
+    if (stopAfterFade && typeof window !== 'undefined') {
+      if (this.musicStopTimer !== null) {
+        window.clearTimeout(this.musicStopTimer);
+      }
+      this.musicStopTimer = window.setTimeout(() => {
+        this.musicStopTimer = null;
+        if (
+          !this.enabled ||
+          !this.showcaseActive ||
+          (typeof document !== 'undefined' && document.hidden)
+        ) {
+          if (this.musicSource) {
+            try {
+              this.musicSource.stop();
+              this.musicSource.disconnect();
+            } catch {
+              // ignore already stopped source
+            }
+            this.musicSource = null;
+          }
+        }
+      }, 750);
+    }
+  }
+
+  private duckMusic(ctx: AudioContext): void {
+    if (!this.musicGain || !this.musicSource) return;
+    const now = ctx.currentTime;
+    this.musicGain.gain.cancelScheduledValues(now);
+    this.musicGain.gain.setTargetAtTime(MUSIC_TARGET_GAIN * 0.52, now, 0.025);
+    this.musicGain.gain.setTargetAtTime(MUSIC_TARGET_GAIN, now + 0.42, 0.28);
+  }
+
+  public setShowcaseActive(active: boolean): void {
+    this.showcaseActive = active;
+    if (!active) {
+      this.muteAllDrones();
+      this.fadeOutMusic(true);
+      return;
+    }
+    if (this.enabled && (typeof document === 'undefined' || !document.hidden)) {
+      const ctx = this.ensureContext();
+      if (ctx) {
+        this.startMusic(ctx);
+      }
+    }
+  }
+
   public toggle(): boolean {
     this.enabled = !this.enabled;
     if (this.enabled) {
       const ctx = this.ensureContext();
       if (ctx) {
         this.initDrones(ctx);
+        this.preloadAssets(ctx);
+        if (this.showcaseActive) {
+          this.startMusic(ctx);
+        }
         this.playWelcomeChord();
       }
     } else {
       this.muteAllDrones();
+      this.fadeOutMusic(true);
     }
     return this.enabled;
   }
@@ -86,11 +237,11 @@ class SoundEngine {
 
       const osc1 = ctx.createOscillator();
       osc1.type = 'sawtooth';
-      osc1.frequency.value = 60;
+      osc1.frequency.value = 73.42;
 
       const osc2 = ctx.createOscillator();
       osc2.type = 'sine';
-      osc2.frequency.value = 120.5;
+      osc2.frequency.value = 146.83;
 
       osc1.connect(filter);
       osc2.connect(filter);
@@ -117,7 +268,7 @@ class SoundEngine {
 
       const g1 = ctx.createOscillator();
       g1.type = 'triangle';
-      g1.frequency.value = 98.0;
+      g1.frequency.value = 110.0;
 
       const g2 = ctx.createOscillator();
       g2.type = 'sine';
@@ -158,7 +309,7 @@ class SoundEngine {
     const now = ctx.currentTime;
     const dest = this.getDest(ctx);
 
-    const freqs = [220, 277.18, 329.63, 440];
+    const freqs = [293.66, 349.23, 440.0, 523.25];
     freqs.forEach((f, idx) => {
       const osc = ctx.createOscillator();
       osc.type = idx === 3 ? 'sine' : 'triangle';
@@ -166,11 +317,11 @@ class SoundEngine {
 
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.value = 1200;
+      filter.frequency.value = 1150;
 
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.001, now + idx * 0.045);
-      g.gain.linearRampToValueAtTime(0.085, now + idx * 0.045 + 0.04);
+      g.gain.linearRampToValueAtTime(0.045, now + idx * 0.045 + 0.04);
       g.gain.exponentialRampToValueAtTime(0.0008, now + 0.72 + idx * 0.06);
 
       osc.connect(filter);
@@ -187,11 +338,11 @@ class SoundEngine {
     }
     const now = this.ctx.currentTime;
     const clamped = Math.max(0, Math.min(1, intensity));
-    const targetGain = clamped > 0.02 ? 0.006 + clamped * 0.055 : 0.0001;
+    const targetGain = clamped > 0.02 ? 0.003 + clamped * 0.021 : 0.0001;
     const normTemp = Math.max(0, Math.min(1, (tempC - 18) / 27));
-    const baseFreq = 56 + normTemp * 28;
+    const baseFreq = 73.42 + normTemp * 18;
     this.humOsc1.frequency.setTargetAtTime(baseFreq, now, 0.12);
-    this.humOsc2.frequency.setTargetAtTime(baseFreq * 2.01, now, 0.12);
+    this.humOsc2.frequency.setTargetAtTime(baseFreq * 2.0, now, 0.12);
     this.humFilter.frequency.setTargetAtTime(160 + normTemp * 260, now, 0.12);
     this.humGain.gain.setTargetAtTime(targetGain, now, 0.12);
   }
@@ -202,10 +353,10 @@ class SoundEngine {
     }
     const now = this.ctx.currentTime;
     const clamped = Math.max(0, Math.min(1, intensity));
-    const targetGain = clamped > 0.02 ? 0.012 + clamped * 0.048 : 0.0001;
+    const targetGain = clamped > 0.02 ? 0.004 + clamped * 0.018 : 0.0001;
     this.ganacheFilter.frequency.setTargetAtTime(220 + clamped * 260, now, 0.18);
-    this.ganacheOsc1.frequency.setTargetAtTime(98 + clamped * 6, now, 0.25);
-    this.ganacheOsc2.frequency.setTargetAtTime(146.83 + clamped * 9, now, 0.25);
+    this.ganacheOsc1.frequency.setTargetAtTime(110.0 + clamped * 4, now, 0.25);
+    this.ganacheOsc2.frequency.setTargetAtTime(146.83 + clamped * 5, now, 0.25);
     this.ganacheGain.gain.setTargetAtTime(targetGain, now, 0.18);
   }
 
@@ -221,6 +372,23 @@ class SoundEngine {
     const dest = this.getDest(ctx);
 
     if (!reverse) {
+      if (this.crackBuffer) {
+        const src = ctx.createBufferSource();
+        src.buffer = this.crackBuffer;
+        src.playbackRate.value = 0.98 + Math.random() * 0.04;
+
+        const g = ctx.createGain();
+        g.gain.value = 1.0;
+
+        src.connect(g);
+        g.connect(dest);
+        src.start(now);
+        this.duckMusic(ctx);
+        return;
+      }
+
+      this.preloadAssets(ctx);
+
       const bufferSize = Math.floor(ctx.sampleRate * 0.12);
       const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = noiseBuffer.getChannelData(0);
@@ -284,7 +452,7 @@ class SoundEngine {
 
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.002, now);
-      g.gain.linearRampToValueAtTime(0.14, now + 0.12);
+      g.gain.linearRampToValueAtTime(0.09, now + 0.12);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
       osc.connect(g);

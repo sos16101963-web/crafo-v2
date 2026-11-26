@@ -202,9 +202,9 @@ export function Header({
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("crafo:sound-toggle"))}
-              aria-label={locale === "uk" ? "Перемкнути звук 3D-сцен" : "Переключить звук 3D-сцен"}
-              title={locale === "uk" ? "Звук 3D" : "Звук 3D"}
-              className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border transition-all cursor-pointer ${
+              aria-label={locale === "uk" ? "Увімкнути/вимкнути музику та звук 3D" : "Включить/выключить музыку и звук 3D"}
+              title={locale === "uk" ? "Увімкнути/вимкнути музику та звук 3D" : "Включить/выключить музыку и звук 3D"}
+              className={`relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border transition-all cursor-pointer ${
                 soundOn
                   ? "border-[#e7b866]/70 bg-[#e7b866]/20 text-[#fff3ce]"
                   : lightText
@@ -213,6 +213,12 @@ export function Header({
               }`}
             >
               {soundOn ? <Volume2 className="h-4 w-4 sm:h-4.5 sm:w-4.5" /> : <VolumeX className="h-4 w-4 sm:h-4.5 sm:w-4.5" />}
+              {!soundOn && (
+                <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#e7b866] opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#e7b866]" />
+                </span>
+              )}
             </button>
           )}
           {/* Быстрые ссылки на видео процесса (YouTube & TikTok) */}

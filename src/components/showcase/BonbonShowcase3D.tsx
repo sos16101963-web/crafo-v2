@@ -56,6 +56,7 @@ export const BonbonShowcase3D: React.FC<{
 
   const rootRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+  const inShowcaseRef = useRef(true);
 
   useEffect(() => {
     const lenis = lenisRef.current;
@@ -132,6 +133,11 @@ export const BonbonShowcase3D: React.FC<{
 
   // 3. Synchronize sound state across Header & floating sound banner
   useEffect(() => {
+    const initial = soundEngine.isEnabled();
+    setSoundOn(initial);
+    window.dispatchEvent(new CustomEvent("crafo:sound-state", { detail: initial }));
+    soundEngine.setShowcaseActive(true);
+
     const onHeaderToggle = () => {
       const next = soundEngine.toggle();
       setSoundOn(next);
@@ -140,6 +146,7 @@ export const BonbonShowcase3D: React.FC<{
     window.addEventListener("crafo:sound-toggle", onHeaderToggle);
     return () => {
       window.removeEventListener("crafo:sound-toggle", onHeaderToggle);
+      soundEngine.setShowcaseActive(false);
       soundEngine.muteAllDrones();
     };
   }, []);
@@ -179,9 +186,10 @@ export const BonbonShowcase3D: React.FC<{
       if (rootEl) {
         const rr = rootEl.getBoundingClientRect();
         const visible = rr.top <= window.innerHeight * 0.65 && rr.bottom >= 140;
-        setInShowcase(visible);
-        if (!visible) {
-          soundEngine.muteAllDrones();
+        if (visible !== inShowcaseRef.current) {
+          inShowcaseRef.current = visible;
+          setInShowcase(visible);
+          soundEngine.setShowcaseActive(visible);
         }
       }
 
