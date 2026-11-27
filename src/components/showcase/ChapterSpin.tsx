@@ -181,7 +181,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex items-center justify-center bg-black">
         {/* Instant LCP Poster (8.4 KB mobile frame / 22 KB desktop poster, zero animation frames until gesture) */}
         <picture
-          className="absolute inset-0 w-full h-full pointer-events-none select-none transition-opacity duration-300"
+          className="absolute inset-0 w-full h-full pointer-events-none select-none"
           style={{
             opacity: canvasReady ? 0 : 1,
             transform: "translate3d(0, 18%, 0) scale(0.64)",

@@ -13,7 +13,14 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Откат `inlineCss` (раздувал HTML до 1 МБ) и снятие лишнего preload `Playfair`
+### 2026-11-27 — Снятие конкуренции шрифтов и ленивый `SommelierLazy` на главной
+- **Что сделано:**
+  - `src/components/site/layout-base.tsx`: сокращены веса `Inter_Tight` (`400, 600, 700`) и отключён preload второстепенного `JetBrains_Mono` (`preload: false`), чтобы не перебивать `frame_0000.webp` в `<head>`.
+  - `src/components/site/sommelier-lazy.tsx` + `src/components/site/site-shell.tsx`: интерактивный квиз `ChocolateSommelier` на главной вынесен в клиентский lazy-чанк (`ssr: false`, SEO-версия индексируется на `/sommelier` и `/ru/sommelier`), что уменьшает HTML и RSC payload главной.
+  - `src/components/showcase/ChapterSpin.tsx`: убрана CSS `transition-opacity` на стартовом постере для мгновенной фиксации LCP.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` и пуш в `origin/main`.
+
+### 2026-11-27 (`e347270`) — Откат `inlineCss` (раздувал HTML до 1 МБ) и снятие лишнего preload `Playfair`
 - **Что сделано:**
   - `next.config.ts`: убран `experimental.inlineCss: true`, так как он раздувал HTML до `1.02 МБ` и задерживал FCP (`2.3 с` вместо `1.2 с`); сохранены `dynamic`-чанки `Catalog` / `ChocolateSommelier` / `LeadMagnet`, `8.4 КБ` мобильный постер и `12 с` таймер аналитики (который дал `TBT = 60 мс` и `22 КиБ` unused JS).
   - `src/components/site/layout-base.tsx`: убран `FontPreloads` для `playfair-*.woff2` (`43 КБ`) из `<head>`, чтобы канал на старте был свободен для мобильного LCP-постера.

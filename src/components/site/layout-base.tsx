@@ -12,16 +12,17 @@ import type { Locale } from "@/lib/i18n";
 
 const interTight = Inter_Tight({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-inter-tight",
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "600"],
   variable: "--font-mono-tech",
   display: "swap",
+  preload: false,
 });
 
 /* Шрифты Playfair загружаются по мере прокрутки к каталогу без блокировки первого экрана 3D */

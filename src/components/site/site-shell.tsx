@@ -15,15 +15,13 @@ import { Faq } from "@/components/site/faq";
 import { ContactCta } from "@/components/site/contact";
 import { Footer } from "@/components/site/footer";
 import { CartSheetLazy } from "@/components/site/cart-sheet-lazy";
+import { SommelierLazy } from "@/components/site/sommelier-lazy";
 import { MobileBottomBar } from "@/components/site/mobile-bottom-bar";
 import { JsonLd } from "@/components/site/json-ld";
 import { StarSprite } from "@/components/site/stars";
 import type { Locale } from "@/lib/i18n";
 
 const Catalog = dynamic(() => import("@/components/site/catalog").then((m) => m.Catalog));
-const ChocolateSommelier = dynamic(() =>
-  import("@/components/site/chocolate-sommelier").then((m) => m.ChocolateSommelier),
-);
 const LeadMagnet = dynamic(() => import("@/components/site/lead-magnet").then((m) => m.LeadMagnet));
 
 /**
@@ -56,7 +54,7 @@ export function SiteShell({ locale }: { locale: Locale }) {
         <HolidayBanner locale={locale} />
 
         <Catalog locale={locale} />
-        <ChocolateSommelier locale={locale} />
+        <SommelierLazy locale={locale} />
         <Features locale={locale} />
         <About locale={locale} />
         <Craft locale={locale} />
