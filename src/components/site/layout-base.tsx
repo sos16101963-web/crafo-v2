@@ -15,6 +15,8 @@ const interTight = Inter_Tight({
   weight: ["400", "600", "700"],
   variable: "--font-inter-tight",
   display: "swap",
+  preload: false,
+  adjustFontFallback: true,
 });
 
 const jetbrainsMono = JetBrains_Mono({

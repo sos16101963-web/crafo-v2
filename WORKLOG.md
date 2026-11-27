@@ -13,7 +13,12 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Устранение двойного эффекта `SSR_SAFE_PROFILE` и forced reflow в главах 3–7
+### 2026-11-28 — Снятие preload шрифтов с первого экрана (FCP/LCP на медленном 4G)
+- **Что сделано:** в `src/components/site/layout-base.tsx` для `Inter_Tight` отключён `preload` (`preload: false`, `display: "swap"`, `adjustFontFallback: true`). По водопаду Lighthouse два шрифта (`44 КБ` + `17 КБ`) стартовали вместе с блокирующим CSS (`21 КБ`) и LCP-постером `frame_0000.webp` и делили с ними канал; текст теперь рисуется запасным шрифтом без сдвига макета.
+- **Контекст:** PSI mobile после предыдущих правок: `86` (TBT `40 мс`, CLS `0`, FCP `2.2 с`, LCP `3.8 с`).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш и замер.
+
+### 2026-11-27 (`26e4fa2`) — Устранение двойного эффекта `SSR_SAFE_PROFILE` и forced reflow в главах 3–7
 - **Что сделано:**
   - `src/components/showcase/BonbonShowcase3D.tsx`: `SSR_SAFE_PROFILE` приведён к `dprCap: 1, useMobileFrames: true` (совпадает с мобильным профилем — нет двойного пересоздания `useEffect` во всех 7 главах на старте).
   - `ChapterLamination.tsx`, `ChapterGanache.tsx`, `ChapterTempering.tsx`, `ChapterScanner.tsx`, `ChapterInspector360.tsx`: стартовые `resize()` и `onScroll()` перенесены в `IntersectionObserver` (убран синхронный forced reflow на маунте).
