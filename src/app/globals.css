@@ -474,3 +474,9 @@
 :root {
   interpolate-size: allow-keywords;
 }
+
+/* Пропуск Style/Layout/Paint для секций ниже первого экрана до прокрутки */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 700px;
+}

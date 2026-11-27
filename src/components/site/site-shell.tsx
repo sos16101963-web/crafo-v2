@@ -47,24 +47,28 @@ export function SiteShell({ locale }: { locale: Locale }) {
       <main className="flex-1">
         {/* Флагманская 3D-презентация BONBON PRO (Poster-First, 0 кадров до первого жеста) */}
         <BonbonShowcase3D locale={locale} />
-        <ThermoBanner locale={locale} />
-        <PhotoMarquee locale={locale} />
+        <div className="cv-auto">
+          <ThermoBanner locale={locale} />
+          <PhotoMarquee locale={locale} />
 
-        {/* Сезонний блок: Солодкі подарунки на Миколая (6 грудня) та Новий Рік */}
-        <HolidayBanner locale={locale} />
+          {/* Сезонний блок: Солодкі подарунки на Миколая (6 грудня) та Новий Рік */}
+          <HolidayBanner locale={locale} />
 
-        <Catalog locale={locale} />
-        <SommelierLazy locale={locale} />
-        <Features locale={locale} />
-        <About locale={locale} />
-        <Craft locale={locale} />
-        <Reviews locale={locale} />
-        <Delivery locale={locale} />
-        <Faq locale={locale} />
-        <Corporate locale={locale} />
-        <ContactCta locale={locale} />
+          <Catalog locale={locale} />
+          <SommelierLazy locale={locale} />
+          <Features locale={locale} />
+          <About locale={locale} />
+          <Craft locale={locale} />
+          <Reviews locale={locale} />
+          <Delivery locale={locale} />
+          <Faq locale={locale} />
+          <Corporate locale={locale} />
+          <ContactCta locale={locale} />
+        </div>
       </main>
-      <Footer locale={locale} />
+      <div className="cv-auto">
+        <Footer locale={locale} />
+      </div>
       <CartSheetLazy locale={locale} />
       <LeadMagnet locale={locale} />
       <MobileBottomBar locale={locale} isHome />

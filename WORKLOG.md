@@ -13,7 +13,13 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Снятие конкуренции шрифтов и ленивый `SommelierLazy` на главной
+### 2026-11-27 — `content-visibility: auto` для секций ниже 1-го экрана и снятие forced reflow на маунте
+- **Что сделано:**
+  - По данным Lighthouse JSON (`styleLayout = 3.36 с`, `elementRenderDelay = 1.02 с` для `frame_0000.webp`) добавлен класс `.cv-auto` (`content-visibility: auto; contain-intrinsic-size: 1px 700px;`) в `src/app/globals.css` и `src/components/site/site-shell.tsx` для всех секций ниже 3D-шоукейса и футера.
+  - В `ChapterSpin.tsx` начальные `resize()` и `onScroll()` вынесены в `requestAnimationFrame`, чтобы не вызывать принудительную компоновку (forced reflow) при старте.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш и замер в Lighthouse.
+
+### 2026-11-27 (`5dbd34d`) — Снятие конкуренции шрифтов и ленивый `SommelierLazy` на главной
 - **Что сделано:**
   - `src/components/site/layout-base.tsx`: сокращены веса `Inter_Tight` (`400, 600, 700`) и отключён preload второстепенного `JetBrains_Mono` (`preload: false`), чтобы не перебивать `frame_0000.webp` в `<head>`.
   - `src/components/site/sommelier-lazy.tsx` + `src/components/site/site-shell.tsx`: интерактивный квиз `ChocolateSommelier` на главной вынесен в клиентский lazy-чанк (`ssr: false`, SEO-версия индексируется на `/sommelier` и `/ru/sommelier`), что уменьшает HTML и RSC payload главной.

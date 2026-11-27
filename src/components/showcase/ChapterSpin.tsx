@@ -62,7 +62,10 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       canvas.width = Math.max(320, Math.floor(w * dpr));
       canvas.height = Math.max(200, Math.floor(h * dpr));
     };
-    resize();
+    const initRaf = requestAnimationFrame(() => {
+      resize();
+      onScroll();
+    });
     window.addEventListener("resize", resize);
 
     let isVisible = true;
@@ -96,7 +99,6 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         requestChapterSequence("crunch");
       }
     };
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const unsub = subscribeSequence("spin", () => {
@@ -118,7 +120,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         const riseT = smoothstep(0.0, 0.34, p);
         const glideRight = smoothstep(0.38, 0.52, p);
         const glideLeft = smoothstep(0.66, 0.78, p);
-        const isMobile = (canvas.clientWidth || window.innerWidth) < 768;
+        const isMobile = window.innerWidth < 768;
 
         const scale = lerp(0.64, isMobile ? 0.94 : 1.0, riseT);
         const offsetY = isMobile ? lerp(0.16, -0.09, riseT) : lerp(0.18, 0.0, riseT);
@@ -146,6 +148,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
     render();
 
     return () => {
+      cancelAnimationFrame(initRaf);
       cancelAnimationFrame(rafId);
       unsub();
       io.disconnect();
