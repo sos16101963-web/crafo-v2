@@ -29,6 +29,18 @@ export function Footer({ locale }: { locale: Locale }) {
                 </li>
               ))}
             </ul>
+            <p className="mt-4 text-xs leading-relaxed">
+              <a
+                href="https://www.crafohab.com.ua"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-1.5 text-gold-400/90 underline decoration-gold-500/40 underline-offset-4 transition-colors hover:text-gold-300"
+              >
+                {locale === "uk"
+                  ? "Учасник каталогу крафтових майстерень CrafoHab"
+                  : "Участник каталога крафтовых мастерских CrafoHab"}
+              </a>
+            </p>
           </div>
 
           <nav aria-label={t.catalogAria}>
@@ -44,11 +56,13 @@ export function Footer({ locale }: { locale: Locale }) {
                     { id: "sets", label: "Подарункові набори" },
                     { id: "tiles", label: "Плитки та бруски" },
                     { id: "flowers", label: "Квіти та фігури" },
+                    { id: "cheese", label: "Сирна колекція · Гурме" },
                   ]
                 : [
                     { id: "sets", label: "Подарочные наборы" },
                     { id: "tiles", label: "Плитки и бруски" },
                     { id: "flowers", label: "Цветы и фигуры" },
+                    { id: "cheese", label: "Сырная коллекция · Гурмэ" },
                   ]
               ).map((c) => (
                 <li key={c.id}>
@@ -138,7 +152,7 @@ export function Footer({ locale }: { locale: Locale }) {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 pt-6 pb-24 lg:py-6 text-xs text-cream/50 sm:flex-row sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-cream/50 sm:flex-row sm:px-6 lg:px-8">
           <p>{t.rights(locale === "uk" ? "Шоколадна майстерня CraftChoco (ChocoCraft)" : site.legalName)}</p>
           <p className="flex items-center gap-4">
             <span>{locale === "uk" ? "Харків" : "Харьков"}</span>

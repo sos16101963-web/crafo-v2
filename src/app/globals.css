@@ -7,10 +7,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@view-transition {
-  navigation: auto;
-}
-
 /* ---------- Self-hosted шрифты (замена next/font) ----------
    5 сабсетов вместо 10: латиница ужата до ASCII + типографики.
    Fallback-метрики (size-adjust) перенесены из next/font — CLS остаётся 0. */
@@ -182,12 +178,10 @@
   }
   html {
     scroll-behavior: smooth;
-    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body), system-ui, sans-serif;
-    overflow-x: clip;
   }
   section[id] {
     scroll-margin-top: 84px;
@@ -472,65 +466,11 @@
   .journey-goldflow { animation: none; }
 }
 
-/* ——— 2026 BONBON PRO 3D Showcase Utilities ——— */
-.font-mono-tech {
-  font-family: var(--font-mono-tech), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+/* ---------- 2026–2027 Нативные переходы между страницами и плавные аккордеоны ---------- */
+@view-transition {
+  navigation: auto;
 }
 
-.font-editorial {
-  font-family: var(--font-display), "Playfair Display", Georgia, serif;
-  font-style: italic;
-}
-
-.font-inter-tight {
-  font-family: var(--font-inter-tight), var(--font-body), system-ui, sans-serif;
-}
-
-.gold-gradient-text {
-  background: linear-gradient(135deg, #b87d2e 0%, #e7b866 35%, #fff3ce 55%, #d69e43 80%, #8f5c1a 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.glass-panel {
-  background: rgba(12, 10, 9, 0.72);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.crafo-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, rgba(231, 184, 102, 0.35), rgba(255, 243, 206, 0.65));
-  outline: none;
-  cursor: pointer;
-}
-
-.crafo-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #fff3ce, #d69e43);
-  border: 2px solid #000000;
-  box-shadow: 0 0 18px rgba(231, 184, 102, 0.75);
-  transition: transform 0.15s ease;
-}
-
-.crafo-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.12);
-}
-
-.crafo-slider::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #fff3ce, #d69e43);
-  border: 2px solid #000000;
-  box-shadow: 0 0 18px rgba(231, 184, 102, 0.75);
+:root {
+  interpolate-size: allow-keywords;
 }

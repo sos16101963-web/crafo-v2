@@ -7,7 +7,6 @@ import { productPath } from "@/lib/slugs";
 import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { site } from "@/lib/site";
-import { breadcrumbLd } from "@/lib/inner-meta";
 
 export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
   const uk = locale === "uk";
@@ -38,9 +37,9 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
           {
             format: "Комбо-бокси",
             size: "9 цукерок + плитка · 180 г",
-            price: "320 ₴",
+            price: "336 ₴",
             unit: "цукерки + плитка",
-            desc: "«Подвійна насолода» — ідеальний баланс корпусних цукерок та ремісничого шоколаду з ягодами.",
+            desc: "«Подвійна насолода» — корпусні цукерки та плитка з горіхами й ягодами в одній коробці.",
           },
           {
             format: "Бізнес-набори",
@@ -62,6 +61,13 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
             price: "від 200 ₴ – 880 ₴",
             unit: "скульптурний Callebaut",
             desc: "Реалістичні квіти, які не в'януть і дарують справжній бельгійський шоколад замість листя.",
+          },
+          {
+            format: "Сирна колекція · Гурме",
+            size: "6 / 9 / 12 пірамід · 60–120 г",
+            price: "295 – 585 ₴",
+            unit: "сири + Callebaut",
+            desc: "«Грань насолоди»: манго × Адигейський, малина × блакитна пліснява, ананас × 3-річний сир «101 ніч».",
           },
         ],
         h2WhyCost: "З чого складається ціна цукерок ручної роботи",
@@ -87,7 +93,7 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
         h2Calc: "Калькулятор: скільки коштуватиме ваш подарунок",
         h2Terms: "Що вже входить у вартість кожного набору (0 ₴ без доплат)",
         inclusions: [
-          "Бельгійський шоколад Callebaut — без компромісів та «кондитерської глазурі»",
+          "Справжній бельгійський шоколад Callebaut — без пальмової олії та «кондитерської глазурі»",
           "Святкова подарункова коробка зі стрічкою — 0 ₴",
           "Термобокс з охолодженням у теплу пору року — 0 ₴",
           "Живе фото вашого готового набору перед відправкою в Viber/Telegram — 0 ₴",
@@ -101,7 +107,7 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
           },
           {
             q: "Скільки коштує найдоступніший готовий подарунок?",
-            a: "Найдоступніший набір — міні-бокс «Чотири настрої» за 130 ₴ (4 цукерки з ганашами), а також порційні дитячі медіанти «Маленькі друзі: Четвірка» за 150 ₴. Це повноцінні подарунки у святковій упаковці.",
+            a: "Найдоступніший набір — міні-бокс «Чотири настрої» за 130 ₴ (4 цукерки з ганашами), а також дитячі медіанти «Маленькі друзі: Четвірка» (135 г) за 227 ₴. Це повноцінні подарунки у святковій упаковці.",
           },
           {
             q: "Чому цукерки ручної роботи коштують дорожче за фабричні плитки з супермаркету?",
@@ -140,9 +146,9 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
           {
             format: "Комбо-боксы",
             size: "9 конфет + плитка · 180 г",
-            price: "320 ₴",
+            price: "336 ₴",
             unit: "конфеты + плитка",
-            desc: "«Двойное удовольствие» — идеальный баланс корпусных конфет и ремесленного шоколада с ягодами.",
+            desc: "«Двойное удовольствие» — корпусные конфеты и плитка с орехами и ягодами в одной коробке.",
           },
           {
             format: "Бизнес-наборы",
@@ -164,6 +170,13 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
             price: "от 200 ₴ – 880 ₴",
             unit: "скульптурный Callebaut",
             desc: "Реалистичные цветы, которые не вянут и дарят настоящий бельгийский шоколад вместо увядших лепестков.",
+          },
+          {
+            format: "Сырная коллекция · Гурмэ",
+            size: "6 / 9 / 12 пирамид · 60–120 г",
+            price: "295 – 585 ₴",
+            unit: "сыры + Callebaut",
+            desc: "«Грань наслаждения»: манго × Адыгейский, малина × голубая плесень, ананас × 3-летний сыр «101 ночь».",
           },
         ],
         h2WhyCost: "Из чего складывается цена конфет ручной работы",
@@ -189,7 +202,7 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
         h2Calc: "Калькулятор: сколько будет стоить ваш подарок",
         h2Terms: "Что уже входит в стоимость каждого набора (0 ₴ без доплат)",
         inclusions: [
-          "Бельгийский шоколад Callebaut — без компромиссов и «кондитерской глазури»",
+          "Настоящий бельгийский шоколад Callebaut — без пальмового масла и «кондитерской глазури»",
           "Праздничная подарочная коробка с лентой — 0 ₴",
           "Термобокс с охлаждением в тёплое время года — 0 ₴",
           "Живое фото вашего готового набора перед отправкой в Viber/Telegram — 0 ₴",
@@ -203,7 +216,7 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
           },
           {
             q: "Сколько стоит самый доступный готовый подарок?",
-            a: "Самый доступный набор — мини-бокс «Четыре настроения» за 130 ₴ (4 конфеты с ганашами), а также детские медианты со зверятами за 150 ₴. Это полноценные подарки в праздничной упаковке.",
+            a: "Самый доступный набор — мини-бокс «Четыре настроения» за 130 ₴ (4 конфеты с ганашами), а также детские медианты со зверятами (135 г) за 227 ₴. Это полноценные подарки в праздничной упаковке.",
           },
           {
             q: "Почему конфеты ручной работы стоят дороже фабричных из супермаркета?",
@@ -222,14 +235,6 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
 
   return (
     <InnerShell locale={locale} switchPair={switchPairFor(path)}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            breadcrumbLd([{ name: uk ? "Головна" : "Главная", path: uk ? "/" : "/ru" }, { name: uk ? "Ціни" : "Цены", path }]),
-          ).replace(/</g, "\\u003c"),
-        }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -254,6 +259,13 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-cream/85">{seo.sub}</p>
         </div>
       </section>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <Breadcrumbs
+          items={[{ name: uk ? "Ціни на шоколад ручної роботи" : "Цены на шоколад ручной работы", path }]}
+          locale={locale}
+        />
+      </div>
 
       {/* Быстрый гид: сколько стоит коробка конфет по форматам */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
@@ -328,8 +340,14 @@ export function PricesPage({ locale, path }: { locale: Locale; path: string }) {
                   <td className="px-5 py-3.5 font-semibold text-choco-900">{p.name}</td>
                   <td className="px-5 py-3.5 text-choco-600">{p.weight}</td>
                   <td className="whitespace-nowrap px-5 py-3.5 font-bold text-gold-700">
-                    {p.priceFrom ? `${uk ? "від" : "от"} ` : ""}
-                    {p.price} ₴
+                    {p.variants?.length ? (
+                      <span>{p.variants.map((v) => v.price).join(" / ")} ₴</span>
+                    ) : (
+                      <>
+                        {p.priceFrom ? `${uk ? "від" : "от"} ` : ""}
+                        {p.price} ₴
+                      </>
+                    )}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <a href={productPath(p.id, locale)} className="font-semibold text-choco-700 underline decoration-gold-500/50 underline-offset-4 hover:text-gold-700">

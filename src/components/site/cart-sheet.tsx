@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCart } from "@/store/cart";
 import { trackEvent, trackFb } from "@/lib/analytics";
-import { formatPrice, formatProductPrice, catalogFor } from "@/lib/products";
+import { formatPrice, formatProductPrice, catalogFor, resolveCartProduct } from "@/lib/products";
 import { productPath } from "@/lib/slugs";
 import { site } from "@/lib/site";
 import { toast } from "sonner";
@@ -37,15 +37,16 @@ export function CartSheet({ locale }: { locale: Locale }) {
   );
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
   const [orderDone, setOrderDone] = useState(false);
   const [sending, setSending] = useState(false);
 
   const lines = useMemo(
     () =>
       items
-        .map((i) => ({ ...i, product: catalog.find((p) => p.id === i.id)! }))
+        .map((i) => ({ ...i, product: resolveCartProduct(i.id, catalog)! }))
         .filter((l) => Boolean(l.product)),
-    [items]
+    [items, catalog]
   );
 
   // Якщо в кошику є інші товари, для набору set-four («Чотири настрої») діє спец-знижка 30% (100 ₴ замість 130 ₴)
@@ -94,7 +95,7 @@ export function CartSheet({ locale }: { locale: Locale }) {
           name: name.trim(),
           phone: phone.trim(),
           items: lines.map((l) => ({
-            id: l.product.id,
+            id: l.product.cartId,
             name:
               l.id === "set-four" && hasOtherItems
                 ? `${l.product.name} (спец-знижка 30% для себе)`
@@ -105,6 +106,7 @@ export function CartSheet({ locale }: { locale: Locale }) {
           total,
           locale,
           source,
+          note: note.trim(),
         }),
       });
 
@@ -257,7 +259,7 @@ export function CartSheet({ locale }: { locale: Locale }) {
 
               <ul className="space-y-3.5 px-5 sm:px-6 pt-2 pb-4" aria-label="Товары в корзине">
                 {lines.map((l) => {
-                  const href = productPath(l.product.id, locale);
+                  const href = productPath(l.product.productId, locale);
                   return (
                     <li key={l.id} className="flex gap-4 rounded-2xl border border-border bg-white/90 p-3.5 sm:p-4 shadow-xs">
                       <Link
@@ -429,6 +431,23 @@ export function CartSheet({ locale }: { locale: Locale }) {
                       className="relative z-10 h-11 rounded-xl bg-white text-choco-950 cursor-text pointer-events-auto"
                     />
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="cart-note" className="sr-only">
+                    {locale === "uk" ? "Текст на листівку або коментар" : "Текст на открытку или комментарий"}
+                  </Label>
+                  <Input
+                    id="cart-note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder={
+                      locale === "uk"
+                        ? "Текст на безкоштовну листівку або побажання (за бажанням)"
+                        : "Текст на бесплатную открытку или комментарий (по желанию)"
+                    }
+                    maxLength={220}
+                    className="relative z-10 h-10 rounded-xl bg-white text-xs text-choco-950 cursor-text pointer-events-auto"
+                  />
                 </div>
                 {/* Четкая гарантия прямо перед кнопкой заказа */}
                 <div className="rounded-xl border border-gold-500/35 bg-gold-500/15 px-3 py-2 text-center text-[11px] font-semibold text-choco-950 leading-snug">

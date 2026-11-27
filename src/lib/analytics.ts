@@ -31,7 +31,7 @@ export function trackFb(name: string, params: Record<string, unknown> = {}) {
 
 /** Отправка сигнала намерения заказа в Telegram мастерской через Beacon API */
 export function trackIntent(
-  channel: "viber" | "telegram" | "phone",
+  channel: "viber" | "telegram" | "phone" | "sommelier_add_to_cart",
   productName?: string,
   price?: number
 ) {

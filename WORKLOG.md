@@ -13,7 +13,17 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — 9 SEO-страниц для 3D-глав (1 тур для клиента) и паспорт `README.md`
+### 2026-11-27 — Полная синхронизация с `crafo.com.ua` (сырный шоколад, поиск, открытка, 2026–2027 CSS)
+- **Что сделано:**
+  - Перенесены все 10 свежих коммитов с `craftchoco-live` (`7a0cacc..37581b1`) без потери 3D-функционала и улучшений `crafo-v2`:
+    - Категория **«Сырная коллекция · Гурмэ»** (`cheese`) и набор **«Грань насолоди» (`cheese-gran`)** с выбором формата `6 / 9 / 12` шт., 8 фото `public/images/cheese-gran-*`, поддержкой вариантов в корзине (`resolveCartProduct`) и мобильной липкой панелью (`product-hero-interactive.tsx`).
+    - Обновлённые цены и вес: `mediants-four` (`227 ₴ / 135 г`), `flowers-four` (`580 ₴ / 385 г`).
+    - Мгновенный поиск по вкусу/поводу и сортировка по цене в `src/components/site/catalog.tsx`.
+    - Поле для текста открытки/комментария к заказу (`cart-note` в `cart-sheet.tsx` и `/api/checkout/route.ts`) при сохранении ширины корзины `540px`, плейсхолдера `Телефон` и кнопки очистки корзины.
+    - Хлебные крошки с ключевыми словами на всех страницах, новая статья блога про сырный шоколад (`syrni-shokoladni-tsukerky-kharkiv`), чистка текстов от ИИ-клише, **Meta Pixel dataset ID** в `analytics.tsx`, ссылка на **CrafoHab** в `footer.tsx`, а также нативные CSS-переходы `@view-transition` и `interpolate-size: allow-keywords` в `globals.css`.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` и проверка живого сайта `https://crafo-v2.vercel.app`.
+
+### 2026-11-27 (`07a43ba`) — 9 SEO-страниц для 3D-глав (1 тур для клиента) и паспорт `README.md`
 - **Что сделано:**
   - Создан [README.md](./README.md) — паспорт дубля `crafo-v2.vercel.app` (архитектура 3D, таблица 9 SEO-страниц, отличия от `crafo.com.ua`, бэклог переноса свежих правок из `craftchoco-live`).
   - Добавлен конфиг 9 SEO-глав `src/lib/showcase/seoChapters.ts` и статические маршруты `src/app/(uk)/3d/[chapter]/page.tsx` и `src/app/(ru)/ru/3d/[chapter]/page.tsx` (18 страниц: 9 UK + 9 RU) с уникальными `title`, `description`, `og:image`, `canonical`, `hreflang`, `BreadcrumbList` + `WebPage` JSON-LD.
