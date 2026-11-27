@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   experimental: {
+    inlineCss: true,
     optimizePackageImports: ["lucide-react"],
   },
   async headers() {

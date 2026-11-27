@@ -13,7 +13,14 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Мобильная оптимизация PageSpeed (LCP, FCP, TBT, Forced Reflow)
+### 2026-11-27 — Доводка мобильного PageSpeed в зелёную зону (90+)
+- **Что сделано:**
+  - `next.config.ts`: включён `experimental.inlineCss: true` (Next.js инлайнит критичный CSS прямо в HTML и убирает 430 мс render-blocking CSS).
+  - `src/components/showcase/ChapterSpin.tsx` и `src/components/site/site-shell.tsx`: для мобильных (`< 768px`) подключён `<picture>` + `ReactDOM.preload` с лёгким постером `/frames/mobile/spin/frame_0000.webp` (`8.4 КБ` вместо `22.5 КБ`), а тяжёлые клиентские секции `Catalog`, `ChocolateSommelier` и `LeadMagnet` вынесены в отдельные чанки через `next/dynamic`.
+  - `src/components/site/analytics.tsx`: фолбэк-таймер увеличен до `12 000 мс` (при любом жесте аналитика по-прежнему стартует мгновенно).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` и пуш в `origin/main`.
+
+### 2026-11-27 (`b4d5a66`) — Мобильная оптимизация PageSpeed (LCP, FCP, TBT, Forced Reflow)
 - **Что сделано:**
   - `src/components/site/analytics.tsx`: отложена загрузка GA4, Meta Pixel и Clarity до первого жеста пользователя (`pointerdown`/`touchstart`/`keydown`/`scroll`) или 6.5 с в простое — убрано ~178 KiB неиспользуемого JS и блокировка основного потока на старте.
   - `src/components/site/site-shell.tsx` и `src/components/showcase/ChapterSpin.tsx`: добавлен `ReactDOM.preload("/frames/posters/spin.webp", { as: "image", fetchPriority: "high" })`, явные `width={1280} height={720}` и `decoding="sync"` на LCP-постере; `CartSheet` заменён на `CartSheetLazy`.

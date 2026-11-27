@@ -135,7 +135,7 @@ export function Analytics() {
     };
 
     events.forEach((ev) => window.addEventListener(ev, loadThirdParty, { passive: true, once: true }));
-    const timer = window.setTimeout(loadThirdParty, 6500);
+    const timer = window.setTimeout(loadThirdParty, 12000);
 
     return cleanup;
   }, []);

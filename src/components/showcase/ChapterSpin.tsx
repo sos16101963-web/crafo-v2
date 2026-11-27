@@ -179,21 +179,26 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       className={isInstant ? "relative h-screen bg-black" : "relative h-[380vh] bg-black"}
     >
       <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex items-center justify-center bg-black">
-        {/* Instant LCP Poster (visible immediately at t=0ms with zero frame downloads) */}
-        <img
-          src="/frames/posters/spin.webp"
-          alt="CraftChoco BONBON PRO"
-          width={1280}
-          height={720}
-          loading="eager"
-          decoding="sync"
-          fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none transition-opacity duration-300"
+        {/* Instant LCP Poster (8.4 KB mobile frame / 22 KB desktop poster, zero animation frames until gesture) */}
+        <picture
+          className="absolute inset-0 w-full h-full pointer-events-none select-none transition-opacity duration-300"
           style={{
             opacity: canvasReady ? 0 : 1,
             transform: "translate3d(0, 18%, 0) scale(0.64)",
           }}
-        />
+        >
+          <source media="(max-width: 767px)" srcSet="/frames/mobile/spin/frame_0000.webp" />
+          <img
+            src="/frames/posters/spin.webp"
+            alt="CraftChoco BONBON PRO"
+            width={1280}
+            height={720}
+            loading="eager"
+            decoding="sync"
+            fetchPriority="high"
+            className="w-full h-full object-contain"
+          />
+        </picture>
 
         {!isInstant && (
           <canvas
