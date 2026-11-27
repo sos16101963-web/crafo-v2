@@ -4,6 +4,7 @@ import { INNER_PAGES, BLOG_SLUG_PAIRS, blogArticleModifiedDate } from "@/lib/pag
 import { PRODUCT_SLUGS } from "@/lib/slugs";
 import { products } from "@/lib/products";
 import { blogUk } from "@/lib/blog-uk";
+import { SHOWCASE_SEO_CHAPTERS } from "@/lib/showcase/seoChapters";
 
 /**
  * Останній реліз контенту та технічного SEO для комерційних сторінок сайту.
@@ -91,6 +92,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
+  // 2b. 9 SEO-сторінок 3D-глав (uk + ru = 18 URL)
+  const showcaseChapterPages = SHOWCASE_SEO_CHAPTERS.flatMap((ch) =>
+    createLocalizedPair({
+      ukPath: `/3d/${ch.slug.uk}`,
+      ruPath: `/ru/3d/${ch.slug.ru}`,
+      priority: ch.priority,
+      changeFrequency: "weekly",
+      images: [`${site.url}${ch.ogImage}`],
+    })
+  );
+
   // 3. Сторінки товарів (14 наборів * 2 мови = 28 URL з медіа)
   const productPages = Object.keys(PRODUCT_SLUGS.uk).flatMap((id) => {
     const ukSlug = PRODUCT_SLUGS.uk[id];
@@ -136,6 +148,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...homePages,
     ...innerPages,
+    ...showcaseChapterPages,
     ...productPages,
     ...blogPages,
   ];

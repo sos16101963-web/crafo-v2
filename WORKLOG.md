@@ -13,7 +13,15 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-26 — Правила Antigravity, `WORKLOG.md` и переиспользуемые навыки
+### 2026-11-27 — 9 SEO-страниц для 3D-глав (1 тур для клиента) и паспорт `README.md`
+- **Что сделано:**
+  - Создан [README.md](./README.md) — паспорт дубля `crafo-v2.vercel.app` (архитектура 3D, таблица 9 SEO-страниц, отличия от `crafo.com.ua`, бэклог переноса свежих правок из `craftchoco-live`).
+  - Добавлен конфиг 9 SEO-глав `src/lib/showcase/seoChapters.ts` и статические маршруты `src/app/(uk)/3d/[chapter]/page.tsx` и `src/app/(ru)/ru/3d/[chapter]/page.tsx` (18 страниц: 9 UK + 9 RU) с уникальными `title`, `description`, `og:image`, `canonical`, `hreflang`, `BreadcrumbList` + `WebPage` JSON-LD.
+  - Обновлён `src/components/showcase/BonbonShowcase3D.tsx`: добавлен `initialChapter` (при заходе на любой из 9 URL клиент плавно/мгновенно оказывается на нужной главе внутри единого 9-главного 3D-тура), а точки навигации справа стали полноценными `<a href="/3d/...">` ссылками для краулинга Googlebot (клик прокручивает плавно без перезагрузки, обновляя URL через `history.replaceState`).
+  - Обновлены `src/lib/pages.ts` (`switchPairFor` для `/3d/<slug>` и `/ru/3d/<slug>`) и `src/app/sitemap.ts` (все 18 URL добавлены в `sitemap.xml`).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` и проверка `3d`-маршрутов в браузере.
+
+### 2026-11-26 (`0600645`) — Правила Antigravity, `WORKLOG.md` и переиспользуемые навыки
 - **Что сделано:**
   - Создан `WORKLOG.md` в корне `crafo-v2` с полной историей сборок, деплоев и архитектурных решений.
   - Созданы правила [GEMINI.md](./GEMINI.md) (в репозитории) и глобальное правило в `~/.gemini/config/GEMINI.md`, обязывающие фиксировать каждое изменение и деплой в `WORKLOG.md` + GitHub.

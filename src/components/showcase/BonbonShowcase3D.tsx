@@ -12,6 +12,7 @@ import {
 } from "@/lib/showcase/frameSequence";
 import type { SequenceId } from "@/lib/showcase/sequenceManifest";
 import { CHAPTER_NAV, SHOWCASE_COPY } from "@/lib/showcase/content";
+import { chapterPath, type ShowcaseChapterId } from "@/lib/showcase/seoChapters";
 import { soundEngine } from "@/lib/showcase/soundEngine";
 import { useCart } from "@/store/cart";
 import { ChapterSpin } from "./ChapterSpin";
@@ -46,9 +47,10 @@ const SSR_SAFE_PROFILE: DeviceProfile = {
 export const BonbonShowcase3D: React.FC<{
   locale: Locale;
   standalone3d?: boolean;
-}> = ({ locale, standalone3d = false }) => {
+  initialChapter?: ShowcaseChapterId;
+}> = ({ locale, standalone3d = false, initialChapter }) => {
   const [profile, setProfile] = useState<DeviceProfile>(SSR_SAFE_PROFILE);
-  const [activeSection, setActiveSection] = useState<string>("spin");
+  const [activeSection, setActiveSection] = useState<string>(initialChapter ?? "spin");
   const [inShowcase, setInShowcase] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [soundBannerDismissed, setSoundBannerDismissed] = useState(false);
@@ -57,6 +59,7 @@ export const BonbonShowcase3D: React.FC<{
   const rootRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const inShowcaseRef = useRef(true);
+  const initialJumpDoneRef = useRef(false);
 
   useEffect(() => {
     const lenis = lenisRef.current;
@@ -227,6 +230,9 @@ export const BonbonShowcase3D: React.FC<{
   const handleJumpTo = (id: string) => {
     activateStreaming();
     soundEngine.playTick();
+    if (standalone3d && typeof window !== "undefined") {
+      window.history.replaceState(null, "", chapterPath(id as ShowcaseChapterId, locale));
+    }
     const el = document.getElementById(id);
     if (!el) return;
     if (lenisRef.current) {
@@ -235,6 +241,20 @@ export const BonbonShowcase3D: React.FC<{
       el.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    if (!initialChapter || initialChapter === "spin" || initialJumpDoneRef.current) return;
+    initialJumpDoneRef.current = true;
+    activateStreaming();
+    runEvictionAround(initialChapter);
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(initialChapter);
+      if (el) {
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [initialChapter, runEvictionAround]);
 
   return (
     <div id="showcase-3d-root" ref={rootRef} className="relative bg-black text-white overflow-x-clip">
@@ -246,12 +266,16 @@ export const BonbonShowcase3D: React.FC<{
         >
           {CHAPTER_NAV.map((ch) => {
             const active = activeSection === ch.id;
+            const href = chapterPath(ch.id as ShowcaseChapterId, locale);
             return (
-              <button
+              <a
                 key={ch.id}
-                type="button"
+                href={href}
                 title={ch.label[locale]}
-                onClick={() => handleJumpTo(ch.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleJumpTo(ch.id);
+                }}
                 className="group relative flex items-center justify-center w-3 h-3 bg-transparent border-0 p-0 cursor-pointer"
               >
                 <span
@@ -264,7 +288,7 @@ export const BonbonShowcase3D: React.FC<{
                 <span className="pointer-events-none absolute right-6 px-2.5 py-1 rounded-md bg-black/90 border border-white/15 font-mono-tech text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   {ch.label[locale]}
                 </span>
-              </button>
+              </a>
             );
           })}
         </nav>

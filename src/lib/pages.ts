@@ -2,6 +2,7 @@
 // Кожна сторінка має пару uk/ru для hreflang-перемикача, sitemap і хлібних крихт.
 import type { Locale } from "./i18n";
 import { PRODUCT_SLUGS, productIdBySlug } from "./slugs";
+import { chapterSwitchPair } from "./showcase/seoChapters";
 
 export interface PagePair {
   /** шлях в uk-локалі */
@@ -88,6 +89,15 @@ export function switchPairFor(path: string): { uk: string; ru: string } {
   // 2. Головна сторінка
   if (cleanPath === "/" || cleanPath === "/ru") {
     return { uk: "/", ru: "/ru" };
+  }
+
+  // 2b. 3D SEO-глави (/3d/<slug> и /ru/3d/<slug>)
+  if (cleanPath.startsWith("/3d/")) {
+    const pair = chapterSwitchPair(cleanPath.slice("/3d/".length), "uk");
+    if (pair) return pair;
+  } else if (cleanPath.startsWith("/ru/3d/")) {
+    const pair = chapterSwitchPair(cleanPath.slice("/ru/3d/".length), "ru");
+    if (pair) return pair;
   }
 
   // 3. Сторінки товарів
