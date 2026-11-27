@@ -71,13 +71,14 @@ export function JsonLd({ locale }: { locale: Locale }) {
   };
 
   const catalog = catalogFor(locale);
+  const featuredCatalog = catalog.slice(0, 6);
   const itemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: d.catalog.h2,
     itemListOrder: "https://schema.org/ItemListOrderAscending",
     numberOfItems: catalog.length,
-    itemListElement: catalog.map((p: (typeof catalog)[number], i: number) => ({
+    itemListElement: featuredCatalog.map((p: (typeof catalog)[number], i: number) => ({
       "@type": "ListItem",
       position: i + 1,
       item: {

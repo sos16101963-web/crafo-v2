@@ -10,13 +10,20 @@ import { cn } from "@/lib/utils";
 
 type SortMode = "default" | "price-asc" | "price-desc";
 
-export function Catalog({ locale }: { locale: Locale }) {
+export function Catalog({
+  locale,
+  initialLimit,
+}: {
+  locale: Locale;
+  initialLimit?: number;
+}) {
   const t = getDict(locale);
   const uk = locale === "uk";
   const cat = t.catalog.categories;
   const [active, setActive] = useState<(typeof cat)[number]["id"]>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("default");
+  const [expanded, setExpanded] = useState(false);
   const all = catalogFor(locale);
 
   const visible = useMemo(() => {
@@ -181,11 +188,29 @@ export function Catalog({ locale }: { locale: Locale }) {
             </button>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
-            {visible.map((p: (typeof all)[number]) => (
-              <ProductCard key={p.id} product={p} locale={locale} />
-            ))}
-          </div>
+          <>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
+              {(initialLimit && !expanded && active === "all" && !query.trim() && sort === "default"
+                ? visible.slice(0, initialLimit)
+                : visible
+              ).map((p: (typeof all)[number]) => (
+                <ProductCard key={p.id} product={p} locale={locale} />
+              ))}
+            </div>
+            {initialLimit && !expanded && active === "all" && !query.trim() && sort === "default" && visible.length > initialLimit && (
+              <div className="mt-10 text-center">
+                <button
+                  type="button"
+                  onClick={() => setExpanded(true)}
+                  className="btn-choco-luxe inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold shadow-lg cursor-pointer"
+                >
+                  {uk
+                    ? `Показати весь каталог (ще ${visible.length - initialLimit} наборів)`
+                    : `Показать весь каталог (ещё ${visible.length - initialLimit} наборов)`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

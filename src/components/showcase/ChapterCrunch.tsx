@@ -56,17 +56,24 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
       const h = canvas.clientHeight || window.innerHeight;
       canvas.width = Math.max(320, Math.floor(w * dpr));
       canvas.height = Math.max(200, Math.floor(h * dpr));
+      dirty = true;
     };
-    resize();
     window.addEventListener("resize", resize);
 
     let isVisible = false;
     let dirty = true;
     let markedReady = false;
+    let initialized = false;
+    let rafId = 0;
 
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           requestChapterSequence("crunch");
         }
       },
@@ -78,9 +85,18 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? false;
         if (isVisible) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           dirty = true;
           prioritizeSequence("crunch");
           onActiveRef.current?.();
+          if (!rafId) render();
+        } else if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
         }
       },
       { threshold: 0.01 }
@@ -88,6 +104,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
     io.observe(section);
 
     const onScroll = () => {
+      if (!initialized && !isVisible) return;
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const p = clamp01(-rect.top / scrollable);
@@ -105,18 +122,18 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
         requestChapterSequence("layers");
       }
     };
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const unsub = subscribeSequence("crunch", () => {
       dirty = true;
     });
 
-    let rafId = 0;
-
     const render = () => {
+      if (!isVisible) {
+        rafId = 0;
+        return;
+      }
       rafId = requestAnimationFrame(render);
-      if (!isVisible) return;
 
       const total = getSequenceCount("crunch");
       const diff = targetRef.current - dampedRef.current;
@@ -133,7 +150,7 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
             markedReady = true;
             setCanvasReady(true);
           }
-          const isMobile = (canvas.clientWidth || window.innerWidth) < 768;
+          const isMobile = window.innerWidth < 768;
           drawSequenceFrame(ctx, frameImg, canvas.width, canvas.height, {
             mode: "contain",
             scale: isMobile ? 0.98 : 1.02,
@@ -143,7 +160,6 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
         }
       }
     };
-    render();
 
     return () => {
       cancelAnimationFrame(rafId);

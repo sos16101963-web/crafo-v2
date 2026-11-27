@@ -13,7 +13,14 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — `content-visibility: auto` для секций ниже 1-го экрана и снятие forced reflow на маунте
+### 2026-11-27 — Сжатие DOM/HTML главной (`initialLimit=6` в каталоге, компактный `JsonLd`, ленивый цикл `ChapterCrunch`)
+- **Что сделано:**
+  - `src/components/site/catalog.tsx` и `src/components/site/site-shell.tsx`: на главной `/` изначально выводятся первые 6 наборов (включая `cheese-gran`) и кнопка «Показати весь каталог» (на `/katalog` и при поиске/фильтрации — все 21). Это вдвое сокращает стартовый HTML и количество DOM-узлов.
+  - `src/components/site/json-ld.tsx`: `ItemList` на главной ограничивается топ-6 позициями (~35 КБ экономии HTML; полные `Product` схемы остаются на страницах товаров).
+  - `src/components/showcase/ChapterCrunch.tsx`: отложены `resize()`, `onScroll()` и `requestAnimationFrame` до попадания главы в зону видимости (`IntersectionObserver`).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш и замер Lighthouse.
+
+### 2026-11-27 (`50da31b`) — `content-visibility: auto` для секций ниже 1-го экрана и снятие forced reflow на маунте
 - **Что сделано:**
   - По данным Lighthouse JSON (`styleLayout = 3.36 с`, `elementRenderDelay = 1.02 с` для `frame_0000.webp`) добавлен класс `.cv-auto` (`content-visibility: auto; contain-intrinsic-size: 1px 700px;`) в `src/app/globals.css` и `src/components/site/site-shell.tsx` для всех секций ниже 3D-шоукейса и футера.
   - В `ChapterSpin.tsx` начальные `resize()` и `onScroll()` вынесены в `requestAnimationFrame`, чтобы не вызывать принудительную компоновку (forced reflow) при старте.

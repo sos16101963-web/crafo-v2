@@ -54,7 +54,7 @@ export function SiteShell({ locale }: { locale: Locale }) {
           {/* Сезонний блок: Солодкі подарунки на Миколая (6 грудня) та Новий Рік */}
           <HolidayBanner locale={locale} />
 
-          <Catalog locale={locale} />
+          <Catalog locale={locale} initialLimit={6} />
           <SommelierLazy locale={locale} />
           <Features locale={locale} />
           <About locale={locale} />
