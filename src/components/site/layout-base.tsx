@@ -33,7 +33,7 @@ function FontPreloads() {
   return null;
 }
 
-/* Speculation Rules API (2026): фоновая передзагрузка HTML + prerender ключевых страниц */
+/* Speculation Rules API (2026): лёгкий prefetch при наведении без агрессивного prerender на 4G */
 function SpeculationRules() {
   const rules = {
     prefetch: [
@@ -45,13 +45,7 @@ function SpeculationRules() {
             { not: { href_matches: "/api/*" } },
           ],
         },
-        eagerness: "moderate",
-      },
-    ],
-    prerender: [
-      {
-        urls: ["/katalog", "/ru/katalog", "/3d", "/ru/3d", "/sommelier", "/ru/sommelier"],
-        eagerness: "moderate",
+        eagerness: "conservative",
       },
     ],
   };

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Lenis from "lenis";
+import dynamic from "next/dynamic";
+import type Lenis from "lenis";
 import { Volume2, X, ArrowDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 import { detectDeviceProfile, type DeviceProfile } from "@/lib/showcase/deviceTier";
@@ -16,14 +17,15 @@ import { chapterPath, type ShowcaseChapterId } from "@/lib/showcase/seoChapters"
 import { soundEngine } from "@/lib/showcase/soundEngine";
 import { useCart } from "@/store/cart";
 import { ChapterSpin } from "./ChapterSpin";
-import { ChapterCrunch } from "./ChapterCrunch";
-import { ChapterLamination } from "./ChapterLamination";
-import { ChapterGanache } from "./ChapterGanache";
-import { ChapterTempering } from "./ChapterTempering";
-import { ChapterScanner } from "./ChapterScanner";
-import { ChapterInspector360 } from "./ChapterInspector360";
-import { ChapterLineup } from "./ChapterLineup";
-import { ChapterOrder } from "./ChapterOrder";
+
+const ChapterCrunch = dynamic(() => import("./ChapterCrunch").then((m) => m.ChapterCrunch));
+const ChapterLamination = dynamic(() => import("./ChapterLamination").then((m) => m.ChapterLamination));
+const ChapterGanache = dynamic(() => import("./ChapterGanache").then((m) => m.ChapterGanache));
+const ChapterTempering = dynamic(() => import("./ChapterTempering").then((m) => m.ChapterTempering));
+const ChapterScanner = dynamic(() => import("./ChapterScanner").then((m) => m.ChapterScanner));
+const ChapterInspector360 = dynamic(() => import("./ChapterInspector360").then((m) => m.ChapterInspector360));
+const ChapterLineup = dynamic(() => import("./ChapterLineup").then((m) => m.ChapterLineup));
+const ChapterOrder = dynamic(() => import("./ChapterOrder").then((m) => m.ChapterOrder));
 
 const CHAPTER_SEQUENCES: Record<string, SequenceId[]> = {
   spin: ["spin"],
@@ -109,27 +111,35 @@ export const BonbonShowcase3D: React.FC<{
     return cleanupListeners;
   }, []);
 
-  // 2. Conditional Lenis smooth scroll ONLY on high-spec desktop devices
+  // 2. Conditional Lenis smooth scroll ONLY on high-spec desktop devices (lazy-imported so phones never parse it)
   useEffect(() => {
     if (!profile.enableLenis) return;
 
-    const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-    lenisRef.current = lenis;
-
+    let cancelled = false;
     let rafId = 0;
-    const raf = (time: number) => {
-      lenis.raf(time);
+    let instance: Lenis | null = null;
+
+    void import("lenis").then(({ default: LenisCtor }) => {
+      if (cancelled) return;
+      const lenis = new LenisCtor({
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+      instance = lenis;
+      lenisRef.current = lenis;
+
+      const raf = (time: number) => {
+        lenis.raf(time);
+        rafId = requestAnimationFrame(raf);
+      };
       rafId = requestAnimationFrame(raf);
-    };
-    rafId = requestAnimationFrame(raf);
+    });
 
     return () => {
+      cancelled = true;
       cancelAnimationFrame(rafId);
-      lenis.destroy();
+      instance?.destroy();
       lenisRef.current = null;
     };
   }, [profile.enableLenis]);
@@ -184,7 +194,11 @@ export const BonbonShowcase3D: React.FC<{
 
   useEffect(() => {
     const ids = CHAPTER_NAV.map((c) => c.id);
+    let ticking = false;
+    let scrollRaf = 0;
+
     const updateActive = () => {
+      ticking = false;
       const rootEl = rootRef.current;
       if (rootEl) {
         const rr = rootEl.getBoundingClientRect();
@@ -213,10 +227,16 @@ export const BonbonShowcase3D: React.FC<{
       }
     };
 
-    window.addEventListener("scroll", updateActive, { passive: true });
-    updateActive();
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      scrollRaf = requestAnimationFrame(updateActive);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", updateActive);
+      cancelAnimationFrame(scrollRaf);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [runEvictionAround]);
 

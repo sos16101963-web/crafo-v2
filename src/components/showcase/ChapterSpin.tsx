@@ -183,8 +183,11 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         <img
           src="/frames/posters/spin.webp"
           alt="CraftChoco BONBON PRO"
+          width={1280}
+          height={720}
+          loading="eager"
+          decoding="sync"
           fetchPriority="high"
-          decoding="async"
           className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none transition-opacity duration-300"
           style={{
             opacity: canvasReady ? 0 : 1,

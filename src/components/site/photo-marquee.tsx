@@ -53,6 +53,7 @@ export function PhotoMarquee({ locale }: { locale: Locale }) {
                 src={p.src}
                 alt={i >= photos.length ? "" : p.alt}
                 fill
+                loading="lazy"
                 sizes="288px"
                 className="object-cover"
               />

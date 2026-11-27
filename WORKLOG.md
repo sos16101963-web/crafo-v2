@@ -13,7 +13,16 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Полная синхронизация с `crafo.com.ua` (сырный шоколад, поиск, открытка, 2026–2027 CSS)
+### 2026-11-27 — Мобильная оптимизация PageSpeed (LCP, FCP, TBT, Forced Reflow)
+- **Что сделано:**
+  - `src/components/site/analytics.tsx`: отложена загрузка GA4, Meta Pixel и Clarity до первого жеста пользователя (`pointerdown`/`touchstart`/`keydown`/`scroll`) или 6.5 с в простое — убрано ~178 KiB неиспользуемого JS и блокировка основного потока на старте.
+  - `src/components/site/site-shell.tsx` и `src/components/showcase/ChapterSpin.tsx`: добавлен `ReactDOM.preload("/frames/posters/spin.webp", { as: "image", fetchPriority: "high" })`, явные `width={1280} height={720}` и `decoding="sync"` на LCP-постере; `CartSheet` заменён на `CartSheetLazy`.
+  - `src/components/showcase/BonbonShowcase3D.tsx`: главы 2–9 переведены на `next/dynamic` (отдельные чанки, сохраняя SSR для Googlebot); `Lenis` переведён на ленивый `import("lenis")` только на мощных ПК; убран синхронный `updateActive()` на маунте и добавлен `rAF`-троттлинг скролла (устранён forced reflow).
+  - `src/components/site/photo-marquee.tsx`: добавлен `loading="lazy"` на 24 фото карусели ниже первого экрана.
+  - `src/components/site/layout-base.tsx`: убран агрессивный `prerender` из `SpeculationRules` на мобильном 4G (оставлен `prefetch` с `eagerness: "conservative"`).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` и пуш в `origin/main`.
+
+### 2026-11-27 (`a450811`) — Полная синхронизация с `crafo.com.ua` (сырный шоколад, поиск, открытка, 2026–2027 CSS)
 - **Что сделано:**
   - Перенесены все 10 свежих коммитов с `craftchoco-live` (`7a0cacc..37581b1`) без потери 3D-функционала и улучшений `crafo-v2`:
     - Категория **«Сырная коллекция · Гурмэ»** (`cheese`) и набор **«Грань насолоди» (`cheese-gran`)** с выбором формата `6 / 9 / 12` шт., 8 фото `public/images/cheese-gran-*`, поддержкой вариантов в корзине (`resolveCartProduct`) и мобильной липкой панелью (`product-hero-interactive.tsx`).
