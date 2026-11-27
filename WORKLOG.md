@@ -13,7 +13,13 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Доводка мобильного PageSpeed в зелёную зону (90+)
+### 2026-11-27 — Откат `inlineCss` (раздувал HTML до 1 МБ) и снятие лишнего preload `Playfair`
+- **Что сделано:**
+  - `next.config.ts`: убран `experimental.inlineCss: true`, так как он раздувал HTML до `1.02 МБ` и задерживал FCP (`2.3 с` вместо `1.2 с`); сохранены `dynamic`-чанки `Catalog` / `ChocolateSommelier` / `LeadMagnet`, `8.4 КБ` мобильный постер и `12 с` таймер аналитики (который дал `TBT = 60 мс` и `22 КиБ` unused JS).
+  - `src/components/site/layout-base.tsx`: убран `FontPreloads` для `playfair-*.woff2` (`43 КБ`) из `<head>`, чтобы канал на старте был свободен для мобильного LCP-постера.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш в `origin/main` и замер размера HTML.
+
+### 2026-11-27 (`315f408`) — Доводка мобильного PageSpeed в зелёную зону (90+)
 - **Что сделано:**
   - `next.config.ts`: включён `experimental.inlineCss: true` (Next.js инлайнит критичный CSS прямо в HTML и убирает 430 мс render-blocking CSS).
   - `src/components/showcase/ChapterSpin.tsx` и `src/components/site/site-shell.tsx`: для мобильных (`< 768px`) подключён `<picture>` + `ReactDOM.preload` с лёгким постером `/frames/mobile/spin/frame_0000.webp` (`8.4 КБ` вместо `22.5 КБ`), а тяжёлые клиентские секции `Catalog`, `ChocolateSommelier` и `LeadMagnet` вынесены в отдельные чанки через `next/dynamic`.

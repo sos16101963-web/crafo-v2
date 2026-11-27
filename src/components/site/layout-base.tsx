@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import ReactDOM from "react-dom";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -25,13 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-/* LCP-шрифты (логотип + H1 в первом экране): fetch стартует из HTML,
-   до разбора render-blocking CSS. ReactDOM.preload дедуплицируется React'ом. */
-function FontPreloads() {
-  ReactDOM.preload("/fonts/playfair-latin.woff2", { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
-  ReactDOM.preload("/fonts/playfair-cyrillic.woff2", { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
-  return null;
-}
+/* Шрифты Playfair загружаются по мере прокрутки к каталогу без блокировки первого экрана 3D */
 
 /* Speculation Rules API (2026): лёгкий prefetch при наведении без агрессивного prerender на 4G */
 function SpeculationRules() {
@@ -113,8 +106,6 @@ export function RootLayoutBase({ locale, children }: { locale: Locale; children:
   return (
     <html lang={locale} className={`${interTight.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col bg-cream font-body text-choco-900 antialiased">
-        {/* React 19 поднимает эти <link rel=preload> в <head> при SSR и гидратации */}
-        <FontPreloads />
         <SpeculationRules />
         {children}
         <LazyToaster />
