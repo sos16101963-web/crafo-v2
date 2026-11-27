@@ -66,15 +66,17 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
       const dpr = Math.min(window.devicePixelRatio || 1, profile.dprCap);
       canvas.width = Math.max(320, Math.floor((canvas.clientWidth || window.innerWidth) * dpr));
       canvas.height = Math.max(200, Math.floor((canvas.clientHeight || window.innerHeight) * dpr));
+      dirty = true;
     };
-    resize();
     window.addEventListener("resize", resize);
 
     let isVisible = false;
     let dirty = true;
     let markedReady = false;
+    let initialized = false;
 
     const update = () => {
+      if (!initialized && !isVisible) return;
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const p = clamp01(-rect.top / scrollable);
@@ -95,6 +97,11 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            update();
+          }
           requestChapterSequence("tempering");
         }
       },
@@ -108,6 +115,10 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
         if (!isVisible) {
           soundEngine.setTemperHum(0, 20);
         } else {
+          if (!initialized) {
+            initialized = true;
+            resize();
+          }
           dirty = true;
           prioritizeSequence("tempering");
           update();
@@ -118,7 +129,6 @@ export const ChapterTempering: React.FC<ChapterTemperingProps> = ({
     );
     io.observe(section);
 
-    update();
     window.addEventListener("scroll", update, { passive: true });
 
     const unsub = subscribeSequence("tempering", () => {

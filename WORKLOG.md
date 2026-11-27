@@ -13,7 +13,13 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-27 — Сжатие DOM/HTML главной (`initialLimit=6` в каталоге, компактный `JsonLd`, ленивый цикл `ChapterCrunch`)
+### 2026-11-27 — Устранение двойного эффекта `SSR_SAFE_PROFILE` и forced reflow в главах 3–7
+- **Что сделано:**
+  - `src/components/showcase/BonbonShowcase3D.tsx`: `SSR_SAFE_PROFILE` приведён к `dprCap: 1, useMobileFrames: true` (совпадает с мобильным профилем — нет двойного пересоздания `useEffect` во всех 7 главах на старте).
+  - `ChapterLamination.tsx`, `ChapterGanache.tsx`, `ChapterTempering.tsx`, `ChapterScanner.tsx`, `ChapterInspector360.tsx`: стартовые `resize()` и `onScroll()` перенесены в `IntersectionObserver` (убран синхронный forced reflow на маунте).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш и проверка в Lighthouse.
+
+### 2026-11-27 (`23852fc`) — Сжатие DOM/HTML главной (`initialLimit=6` в каталоге, компактный `JsonLd`, ленивый цикл `ChapterCrunch`)
 - **Что сделано:**
   - `src/components/site/catalog.tsx` и `src/components/site/site-shell.tsx`: на главной `/` изначально выводятся первые 6 наборов (включая `cheese-gran`) и кнопка «Показати весь каталог» (на `/katalog` и при поиске/фильтрации — все 21). Это вдвое сокращает стартовый HTML и количество DOM-узлов.
   - `src/components/site/json-ld.tsx`: `ItemList` на главной ограничивается топ-6 позициями (~35 КБ экономии HTML; полные `Product` схемы остаются на страницах товаров).

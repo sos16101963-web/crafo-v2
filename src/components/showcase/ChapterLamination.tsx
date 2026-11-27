@@ -69,17 +69,23 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
       const h = canvas.clientHeight || window.innerHeight;
       canvas.width = Math.max(320, Math.floor(w * dpr));
       canvas.height = Math.max(200, Math.floor(h * dpr));
+      dirty = true;
     };
-    resize();
     window.addEventListener("resize", resize);
 
     let isVisible = false;
     let dirty = true;
     let markedReady = false;
+    let initialized = false;
 
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           requestChapterSequence("layers");
         }
       },
@@ -91,6 +97,11 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? false;
         if (isVisible) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           dirty = true;
           prioritizeSequence("layers");
           onActiveRef.current?.();
@@ -101,6 +112,7 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
     io.observe(section);
 
     const onScroll = () => {
+      if (!initialized && !isVisible) return;
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const p = clamp01(-rect.top / scrollable);
@@ -110,7 +122,6 @@ export const ChapterLamination: React.FC<ChapterLaminationProps> = ({
         requestChapterSequence("ganache");
       }
     };
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const unsub = subscribeSequence("layers", () => {

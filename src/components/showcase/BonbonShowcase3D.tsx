@@ -41,8 +41,8 @@ const CHAPTER_SEQUENCES: Record<string, SequenceId[]> = {
 
 const SSR_SAFE_PROFILE: DeviceProfile = {
   tier: "lite",
-  useMobileFrames: false,
-  dprCap: 1.5,
+  useMobileFrames: true,
+  dprCap: 1,
   enableLenis: false,
 };
 

@@ -136,13 +136,17 @@ export const ChapterScanner: React.FC<{
       canvas.width = Math.max(320, Math.floor(rect.width * dpr));
       canvas.height = Math.max(240, Math.floor(rect.height * dpr));
     };
-    resize();
     window.addEventListener("resize", resize);
 
     let isVisible = false;
+    let sized = false;
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!sized) {
+            sized = true;
+            resize();
+          }
           startLoadPlates();
           onActiveRef.current?.();
         }
@@ -151,15 +155,14 @@ export const ChapterScanner: React.FC<{
     );
     nearIo.observe(section);
 
-    const rect0 = section.getBoundingClientRect();
-    if (rect0.top < window.innerHeight + 1200) {
-      startLoadPlates();
-    }
-
     const io = new IntersectionObserver(
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? false;
         if (isVisible) {
+          if (!sized) {
+            sized = true;
+            resize();
+          }
           startLoadPlates();
           onActiveRef.current?.();
         }

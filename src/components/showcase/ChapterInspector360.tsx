@@ -102,12 +102,16 @@ export const ChapterInspector360: React.FC<{
       canvas.height = Math.max(240, Math.floor(rect.height * dpr));
       dirtyRef.current = true;
     };
-    resize();
     window.addEventListener("resize", resize);
 
+    let sized = false;
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!sized) {
+            sized = true;
+            resize();
+          }
           onActiveRef.current?.();
           if (!nearPreloadedRef.current) {
             nearPreloadedRef.current = true;

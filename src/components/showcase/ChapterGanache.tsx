@@ -60,16 +60,18 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
       const dpr = Math.min(window.devicePixelRatio || 1, profile.dprCap);
       canvas.width = Math.max(320, Math.floor((canvas.clientWidth || window.innerWidth) * dpr));
       canvas.height = Math.max(200, Math.floor((canvas.clientHeight || window.innerHeight) * dpr));
+      dirty = true;
     };
-    resize();
     window.addEventListener("resize", resize);
 
     // Declare before onScroll so zero TDZ ReferenceError occurs
     let isVisible = false;
     let dirty = true;
     let markedReady = false;
+    let initialized = false;
 
     const onScroll = () => {
+      if (!initialized && !isVisible) return;
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const p = clamp01(-rect.top / scrollable);
@@ -82,7 +84,6 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
         requestChapterSequence("tempering");
       }
     };
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const onPointerMove = (e: PointerEvent) => {
@@ -94,6 +95,11 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
     const nearIo = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           requestChapterSequence("ganache");
         }
       },
@@ -105,6 +111,11 @@ export const ChapterGanache: React.FC<ChapterGanacheProps> = ({
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? false;
         if (isVisible) {
+          if (!initialized) {
+            initialized = true;
+            resize();
+            onScroll();
+          }
           dirty = true;
           prioritizeSequence("ganache");
           soundEngine.setGanacheAmbience(0.65);
