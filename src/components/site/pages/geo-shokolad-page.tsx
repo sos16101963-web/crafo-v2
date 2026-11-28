@@ -28,6 +28,21 @@ export function GeoShokoladPage({ locale, path }: { locale: Locale; path: string
         h2: "Хіти, які харків'яни беруть найчастіше",
         districtsH: "Доставляємо сьогодні:",
         districts: "Шевченківський · Київський · Салтівський · Слобідський · Немишлянський · Індустріальний · Основ'янський · Холодногірський · Новобаварський",
+        geoTitle: "Чим крафтовий шоколад CraftChoco (Callebaut Form V) відрізняється від фабричного?",
+        geoCapsule:
+          "Майстерня CraftChoco у Харкові працює виключно на 100% натуральному бельгійському какао-маслі Barry Callebaut із ручним темперуванням Form V (корпус 0.8 мм) і свіжими вершками без консервантів. Масові цукерки із супермаркету зазвичай містять пальмові жири, ароматизатори та зберігаються 6–12 місяців.",
+        colParam: "Параметр",
+        colCraft: "CraftChoco (Харків)",
+        colMass: "Масмаркет",
+        rows: [
+          ["Сировина", "100% бельгійський Callebaut (70.5% / 33.6% / 28%)", "Замінники какао-масла, пальмова олія"],
+          ["Темперування", "Ручне Form V (45° → 27.2° → 31.2 °C), стінка 0.8 мм", "Потокова глазур із товстим шаром"],
+          ["Начинки", "Натуральне фруктове пюре, праліне, благородні сири", "Помадка, рослинний жир, ароматизатори"],
+          ["Термін зберігання", "14 діб для ганашів (+16…+18 °C), без консервантів", "6–12 місяців із консервантами"],
+          ["Доставка у спеку", "Безкоштовний термобокс до +30 °C, фото перед відправкою", "Звичайна коробка без контролю температури"],
+          ["Ціна набору", "Від 130 ₴ (святкова коробка та листівка — 0 ₴)", "Додаткові витрати на подарункову упаковку"],
+        ],
+        cta3d: "Дивитись інтерактивну 3D-анатомію цукерки (BONBON PRO) →",
       }
     : {
         kicker: "Харьков · ручная работа",
@@ -38,6 +53,21 @@ export function GeoShokoladPage({ locale, path }: { locale: Locale; path: string
         h2: "Хиты, которые харьковчане берут чаще всего",
         districtsH: "Доставляем сегодня:",
         districts: "Шевченковский · Киевский · Салтовский · Слободской · Немышлянский · Индустриальный · Основянский · Холодногорский · Новобаварский",
+        geoTitle: "Чем крафтовый шоколад CraftChoco (Callebaut Form V) отличается от фабричного?",
+        geoCapsule:
+          "Мастерская CraftChoco в Харькове работает исключительно на 100% натуральном бельгийском какао-масле Barry Callebaut с ручным темперированием Form V (корпус 0.8 мм) и свежими сливками без консервантов. Массовые конфеты из супермаркета обычно содержат пальмовые жиры, ароматизаторы и хранятся 6–12 месяцев.",
+        colParam: "Параметр",
+        colCraft: "CraftChoco (Харьков)",
+        colMass: "Массмаркет",
+        rows: [
+          ["Сырьё", "100% бельгийский Callebaut (70.5% / 33.6% / 28%)", "Заменители какао-масла, пальмовый жир"],
+          ["Темперирование", "Ручное Form V (45° → 27.2° → 31.2 °C), стенка 0.8 мм", "Поточная глазурь с толстым слоем"],
+          ["Начинки", "Натуральное фруктовое пюре, пралине, благородные сыры", "Помадка, растительный жир, ароматизаторы"],
+          ["Срок хранения", "14 суток для ганашей (+16…+18 °C), без консервантов", "6–12 месяцев с консервантами"],
+          ["Доставка в жару", "Бесплатный термобокс до +30 °C, фото перед отправкой", "Обычная коробка без термозащиты"],
+          ["Цена набора", "От 130 ₴ (праздничная коробка и открытка — 0 ₴)", "Отдельная доплата за подарочную упаковку"],
+        ],
+        cta3d: "Смотреть интерактивную 3D-анатомию конфеты (BONBON PRO) →",
       };
 
   return (
@@ -69,6 +99,36 @@ export function GeoShokoladPage({ locale, path }: { locale: Locale; path: string
           <p className="text-sm leading-relaxed text-choco-800">
             <strong className="font-bold">{seo.districtsH}</strong> {seo.districts}. {uk ? "Кур'єр — 100 ₴, від 3 000 ₴ безкоштовно." : "Курьер — 100 ₴, от 3 000 ₴ бесплатно."} {site.hours}.
           </p>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-gold-500/30 bg-white p-6 sm:p-8 shadow-sm">
+          <h2 className="font-display text-2xl font-bold text-choco-900 sm:text-3xl">{seo.geoTitle}</h2>
+          <p className="mt-3 text-[15.5px] leading-relaxed text-choco-700">{seo.geoCapsule}</p>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-choco-900">
+                  <th className="py-3 pr-4 font-bold">{seo.colParam}</th>
+                  <th className="py-3 pr-4 font-bold text-gold-700">{seo.colCraft}</th>
+                  <th className="py-3 font-semibold text-choco-500">{seo.colMass}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/70">
+                {seo.rows.map(([param, craft, mass]) => (
+                  <tr key={param}>
+                    <td className="py-3 pr-4 font-semibold text-choco-900">{param}</td>
+                    <td className="py-3 pr-4 text-choco-800">{craft}</td>
+                    <td className="py-3 text-choco-500">{mass}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-5">
+            <Link href={uk ? "/3d" : "/ru/3d"} className="text-sm font-bold text-gold-700 hover:underline">
+              {seo.cta3d}
+            </Link>
+          </div>
         </div>
       </section>
 

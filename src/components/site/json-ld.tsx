@@ -23,6 +23,30 @@ export function JsonLd({ locale }: { locale: Locale }) {
     addressCountry: "UA",
   };
 
+  const founder = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${site.url}/#founder`,
+    name: locale === "uk" ? "Олександр — шеф-шоколатьє CraftChoco" : "Александр — шеф-шоколатье CraftChoco",
+    jobTitle: locale === "uk" ? "Засновник та головний шоколатьє" : "Основатель и главный шоколатье",
+    url: `${site.url}${locale === "uk" ? "/pro-nas" : "/ru/o-nas"}`,
+    worksFor: { "@id": `${site.url}/#organization` },
+    knowsAbout: locale === "uk"
+      ? [
+          "Темперування бельгійського шоколаду Callebaut Form V",
+          "Корпусні цукерки ручної роботи (стінка 0.8 мм)",
+          "Сирні шоколадні цукерки-піраміди гурме",
+          "Їстівні шоколадні букети та корпоративні подарунки",
+        ]
+      : [
+          "Темперирование бельгийского шоколада Callebaut Form V",
+          "Корпусные конфеты ручной работы (стенка 0.8 мм)",
+          "Сырные шоколадные конфеты-пирамиды гурмэ",
+          "Съедобные шоколадные букеты и корпоративные подарки",
+        ],
+    sameAs: [site.youtube, site.tiktok],
+  };
+
   const organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -34,8 +58,31 @@ export function JsonLd({ locale }: { locale: Locale }) {
     logo: `${site.url}/icon.svg`,
     description: d.meta.description,
     telephone: site.phoneIntl,
+    founder: { "@id": `${site.url}/#founder` },
+    knowsAbout: locale === "uk"
+      ? [
+          "Бельгійський шоколад Callebaut",
+          "Темперування Form V",
+          "Цукерки ручної роботи у Харкові",
+          "Сирні шоколадні цукерки",
+          "Корпоративні шоколадні подарунки по Україні",
+        ]
+      : [
+          "Бельгийский шоколад Callebaut",
+          "Темперирование Form V",
+          "Конфеты ручной работы в Харькове",
+          "Сырные шоколадные конфеты",
+          "Корпоративные шоколадные подарки по Украине",
+        ],
     address: postalAddress,
-    sameAs: [site.youtube, site.tiktok, "https://t.me/craft_choco_kharkiv", "https://www.pinterest.com/craft_choco_kharkiv/"],
+    sameAs: [
+      site.youtube,
+      site.tiktok,
+      "https://t.me/craft_choco_kharkiv",
+      "https://www.pinterest.com/craft_choco_kharkiv/",
+      site.googleMaps,
+      "https://www.crafohab.com.ua",
+    ],
   };
 
   const store = {
@@ -186,7 +233,7 @@ export function JsonLd({ locale }: { locale: Locale }) {
     })),
   };
 
-  const scripts = [organization, store, website, itemList, faqPage];
+  const scripts = [organization, founder, store, website, itemList, faqPage];
 
   return (
     <>

@@ -54,6 +54,101 @@ export function ProductLanding({
 }) {
   const t = getDict(locale);
   const uk = locale === "uk";
+  const returnPolicy = {
+    "@type": "MerchantReturnPolicy",
+    applicableCountry: "UA",
+    returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+    merchantReturnLink: `${site.url}${uk ? "/dostavka" : "/ru/dostavka"}`,
+  };
+
+  const shippingDetails = [
+    {
+      "@type": "OfferShippingDetails",
+      shippingRate: {
+        "@type": "MonetaryAmount",
+        value: site.courierPrice,
+        currency: "UAH",
+      },
+      shippingDestination: {
+        "@type": "DefinedRegion",
+        addressRegion: uk ? "Харківська область" : "Харьковская область",
+        addressCountry: "UA",
+      },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: {
+          "@type": "QuantitativeValue",
+          minValue: 0,
+          maxValue: 1,
+          unitCode: "DAY",
+        },
+        transitTime: {
+          "@type": "QuantitativeValue",
+          minValue: 0,
+          maxValue: 1,
+          unitCode: "DAY",
+        },
+      },
+    },
+    {
+      "@type": "OfferShippingDetails",
+      shippingRate: {
+        "@type": "MonetaryAmount",
+        value: 80,
+        currency: "UAH",
+      },
+      shippingDestination: {
+        "@type": "DefinedRegion",
+        addressCountry: "UA",
+      },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: {
+          "@type": "QuantitativeValue",
+          minValue: 0,
+          maxValue: 1,
+          unitCode: "DAY",
+        },
+        transitTime: {
+          "@type": "QuantitativeValue",
+          minValue: 1,
+          maxValue: 2,
+          unitCode: "DAY",
+        },
+      },
+    },
+  ];
+
+  const baseOffer = (price: number, skuSuffix?: string, variantLabel?: string) => ({
+    "@type": "Offer",
+    url: `${site.url}${canonicalPath}`,
+    ...(skuSuffix ? { sku: skuSuffix } : {}),
+    ...(variantLabel ? { name: `${product.name} (${variantLabel})` } : {}),
+    priceCurrency: "UAH",
+    price,
+    priceValidUntil: "2027-12-31",
+    validFrom: "2024-01-01",
+    availability: "https://schema.org/InStock",
+    itemCondition: "https://schema.org/NewCondition",
+    areaServed: uk ? [...CITIES_SERVED_UK] : [...CITIES_SERVED_RU],
+    seller: { "@id": `${site.url}/#organization` },
+    hasMerchantReturnPolicy: returnPolicy,
+    shippingDetails,
+  });
+
+  const offersLd =
+    product.variants && product.variants.length > 0
+      ? {
+          "@type": "AggregateOffer",
+          priceCurrency: "UAH",
+          lowPrice: Math.min(...product.variants.map((v) => v.price)),
+          highPrice: Math.max(...product.variants.map((v) => v.price)),
+          offerCount: product.variants.length,
+          availability: "https://schema.org/InStock",
+          offers: product.variants.map((v) => baseOffer(v.price, `${product.id}-${v.id}`, v.label)),
+        }
+      : baseOffer(product.price);
+
   const productLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -74,81 +169,7 @@ export function ProductLanding({
       alternateName: ["ChocoCraft", "Callebaut"],
     },
     manufacturer: { "@id": `${site.url}/#organization` },
-    offers: {
-      "@type": "Offer",
-      url: `${site.url}${canonicalPath}`,
-      priceCurrency: "UAH",
-      price: product.price,
-      priceValidUntil: "2027-12-31",
-      validFrom: "2024-01-01",
-      availability: "https://schema.org/InStock",
-      itemCondition: "https://schema.org/NewCondition",
-      areaServed: uk ? [...CITIES_SERVED_UK] : [...CITIES_SERVED_RU],
-      seller: { "@id": `${site.url}/#organization` },
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "UA",
-        returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
-        merchantReturnLink: `${site.url}${uk ? "/dostavka" : "/ru/dostavka"}`,
-      },
-      shippingDetails: [
-        {
-          "@type": "OfferShippingDetails",
-          shippingRate: {
-            "@type": "MonetaryAmount",
-            value: site.courierPrice,
-            currency: "UAH",
-          },
-          shippingDestination: {
-            "@type": "DefinedRegion",
-            addressRegion: uk ? "Харківська область" : "Харьковская область",
-            addressCountry: "UA",
-          },
-          deliveryTime: {
-            "@type": "ShippingDeliveryTime",
-            handlingTime: {
-              "@type": "QuantitativeValue",
-              minValue: 0,
-              maxValue: 1,
-              unitCode: "DAY",
-            },
-            transitTime: {
-              "@type": "QuantitativeValue",
-              minValue: 0,
-              maxValue: 1,
-              unitCode: "DAY",
-            },
-          },
-        },
-        {
-          "@type": "OfferShippingDetails",
-          shippingRate: {
-            "@type": "MonetaryAmount",
-            value: 80,
-            currency: "UAH",
-          },
-          shippingDestination: {
-            "@type": "DefinedRegion",
-            addressCountry: "UA",
-          },
-          deliveryTime: {
-            "@type": "ShippingDeliveryTime",
-            handlingTime: {
-              "@type": "QuantitativeValue",
-              minValue: 0,
-              maxValue: 1,
-              unitCode: "DAY",
-            },
-            transitTime: {
-              "@type": "QuantitativeValue",
-              minValue: 1,
-              maxValue: 2,
-              unitCode: "DAY",
-            },
-          },
-        },
-      ],
-    },
+    offers: offersLd,
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: product.rating,

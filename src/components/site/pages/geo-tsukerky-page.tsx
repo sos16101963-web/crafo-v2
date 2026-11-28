@@ -8,6 +8,7 @@ import { catalogFor } from "@/lib/products";
 import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { site } from "@/lib/site";
+import { productPath } from "@/lib/slugs";
 
 const SETS_IDS = ["cheese-gran", "set-sixteen", "set-combo", "set-six", "set-four", "envelope-gift"];
 
@@ -28,6 +29,18 @@ export function GeoTsukerkyPage({ locale, path }: { locale: Locale; path: string
         h2: "Набори цукерок, які беруть у Харкові",
         guaranteeH: "Чому цукерки доїдуть ідеальними",
         guarantee: "Кожне замовлення пакуємо в термосумку з охолодженням: у спеку до +30°C цукерки зберігають форму, глянець і малюнок. Якщо щось піде не так — замінимо за наш рахунок. Це не акція, це стандарт майстерні для кожної коробки.",
+        guideTitle: "Як обрати набір цукерок ручної роботи за приводом і бюджетом?",
+        guideCapsule:
+          "Для легкого компліменту підійдуть набори від 130 ₴ (4 сфери), для гурманів — сирні піраміди «Грань насолоди» (295–585 ₴), для мами чи на ювілей — «Свято без приводу» (450 ₴, 16 цукерок), а для вау-ефекту — шоколадні квіти (від 330 ₴). У вартість кожного набору вже включено святкову коробку, стрічку та листівку.",
+        guideCols: ["Привід / кому", "Рекомендований набір", "Вага і формат", "Ціна"],
+        guideRows: [
+          { occasion: "Символічний комплімент колезі або собі", id: "set-four", name: "«Чотири настрої»", spec: "36 г · 4 сфери Callebaut", price: "130 ₴" },
+          { occasion: "Для гурманів та поціновувачів сиру", id: "cheese-gran", name: "«Грань насолоди»", spec: "60–120 г · 6 / 9 / 12 пірамід", price: "295 – 585 ₴" },
+          { occasion: "Коханій людині або на побачення", id: "set-twelve", name: "«Мелодія кохання»", spec: "120 г · 12 цукерок", price: "від 350 ₴" },
+          { occasion: "Мамі, бабусі або на ювілей", id: "set-sixteen", name: "«Свято без приводу»", spec: "130 г · 16 цукерок, 4 ганаші", price: "від 450 ₴" },
+          { occasion: "Чоловіку під каву чи віскі", id: "bars-fruit", name: "«Відпочинок після роботи»", spec: "300 г · 10 брусків по 30 г", price: "500 ₴" },
+        ],
+        guideSommelier: "Пройти тест «Шоколадний сомельє» зі знижкою -10% (SOMELIER10) →",
       }
     : {
         kicker: "Конфеты · Харьков",
@@ -38,6 +51,18 @@ export function GeoTsukerkyPage({ locale, path }: { locale: Locale; path: string
         h2: "Наборы конфет, которые берут в Харькове",
         guaranteeH: "Почему конфеты доедут идеальными",
         guarantee: "Каждый заказ пакуем в термосумку с охлаждением: в жару до +30°C конфеты сохраняют форму, глянец и рисунок. Если что-то пойдёт не так — заменим за наш счёт. Это не акция, это стандарт мастерской для каждой коробки.",
+        guideTitle: "Как выбрать набор конфет ручной работы по поводу и бюджету?",
+        guideCapsule:
+          "Для лёгкого комплимента подойдут наборы от 130 ₴ (4 сферы), для гурманов — сырные пирамиды «Грань наслаждения» (295–585 ₴), для мамы или на юбилей — «Праздник без повода» (450 ₴, 16 конфет), а для вау-эффекта — шоколадные цветы (от 330 ₴). В стоимость каждого набора уже входят подарочная коробка, лента и открытка.",
+        guideCols: ["Повод / кому", "Рекомендуемый набор", "Вес и формат", "Цена"],
+        guideRows: [
+          { occasion: "Символичный комплимент коллеге или себе", id: "set-four", name: "«Четыре настроения»", spec: "36 г · 4 сферы Callebaut", price: "130 ₴" },
+          { occasion: "Для гурманов и ценителей сыра", id: "cheese-gran", name: "«Грань наслаждения»", spec: "60–120 г · 6 / 9 / 12 пирамид", price: "295 – 585 ₴" },
+          { occasion: "Любимому человеку или на свидание", id: "set-twelve", name: "«Мелодия любви»", spec: "120 г · 12 конфет", price: "от 350 ₴" },
+          { occasion: "Маме, бабушке или на юбилей", id: "set-sixteen", name: "«Праздник без повода»", spec: "130 г · 16 конфет, 4 ганаша", price: "от 450 ₴" },
+          { occasion: "Мужчине к кофе или виски", id: "bars-fruit", name: "«Отдых после работы»", spec: "300 г · 10 брусков по 30 г", price: "500 ₴" },
+        ],
+        guideSommelier: "Пройти тест «Шоколадный сомелье» со скидкой -10% (SOMELIER10) →",
       };
 
   return (
@@ -61,6 +86,46 @@ export function GeoTsukerkyPage({ locale, path }: { locale: Locale; path: string
           <p>{seo.p1}</p>
           <p>{seo.p2}</p>
           <p>{seo.p3}</p>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-gold-500/30 bg-white p-6 sm:p-8 shadow-sm">
+          <h2 className="font-display text-2xl font-bold text-choco-900 sm:text-3xl">{seo.guideTitle}</h2>
+          <p className="mt-3 text-[15.5px] leading-relaxed text-choco-700">{seo.guideCapsule}</p>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-choco-900">
+                  {seo.guideCols.map((col) => (
+                    <th key={col} className="py-3 pr-4 font-bold last:pr-0">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/70">
+                {seo.guideRows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="py-3 pr-4 font-medium text-choco-900">{row.occasion}</td>
+                    <td className="py-3 pr-4">
+                      <Link href={productPath(row.id, locale)} className="font-bold text-gold-700 hover:underline">
+                        {row.name}
+                      </Link>
+                    </td>
+                    <td className="py-3 pr-4 text-choco-700">{row.spec}</td>
+                    <td className="py-3 font-bold text-choco-900">{row.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-5">
+            <Link href={uk ? "/sommelier" : "/ru/sommelier"} className="text-sm font-bold text-gold-700 hover:underline">
+              {seo.guideSommelier}
+            </Link>
+            <Link href={uk ? "/3d" : "/ru/3d"} className="text-sm font-semibold text-choco-700 hover:text-gold-700 hover:underline">
+              {uk ? "3D-тур BONBON PRO →" : "3D-тур BONBON PRO →"}
+            </Link>
+          </div>
         </div>
       </section>
 

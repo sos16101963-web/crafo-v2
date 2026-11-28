@@ -13,7 +13,16 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-28 — Перенос основного домена `crafo.com.ua` на `crafo-v2`, настройка `vercel.json` (`fra1`) и обновление `sitemap.xml`
+### 2026-11-28 — Пакет GEO / E-E-A-T / Google Merchant Center для максимального цитирования в Google и ИИ (`crafo.com.ua`)
+- **Что сделано (0 КБ клиентского JS — Mobile PageSpeed 99/100 не затронут):**
+  - `public/llms.txt`, `public/llms-full.txt` и `src/app/api/llms/route.ts`: полная синхронизация всех 21 наборов с точными ценами (`130–880 ₴`), весом и вариантами `cheese-gran` (`295 / 445 / 585 ₴`), добавлен блок **3D BONBON PRO** со всеми 9 SEO-главами, техникой Form V (0.8 мм) и ссылками на YouTube/TikTok/CrafoHab.
+  - `src/components/site/json-ld.tsx`: добавлена сущность `Person` (`#founder` — шеф-шоколатьє Олександр) с `knowsAbout` и `sameAs` (YouTube, TikTok), а также `founder`, `knowsAbout` и расширенный `sameAs` (`Google Maps`, `CrafoHab`, `Telegram`, `Pinterest`) в `Organization`.
+  - `src/components/site/product-landing.tsx`: добавлен `AggregateOffer` (`lowPrice`/`highPrice`/`offerCount` + вложенные `Offer` по вариантам) для товаров с размерами коробок (включая «Грань насолоди» 6/9/12 шт.).
+  - `src/app/feed.xml/route.ts`: для Google Merchant Center обновлён `<g:brand>CraftChoco</g:brand>` и добавлена генерация отдельных `<item>` с `<g:item_group_id>` для каждого варианта коробки (295 / 445 / 585 UAH).
+  - `src/components/site/pages/geo-shokolad-page.tsx` и `geo-tsukerky-page.tsx`: добавлены серверные цитируемые Answer Capsules и семантические `<table>`-таблицы (сравнение Callebaut Form V vs масмаркет и подбор подарка по поводам/бюджету).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, деплой в `origin/main`, проверка XML/JSON-LD/GEO-таблиц на `https://crafo.com.ua/` и отправка IndexNow.
+
+### 2026-11-28 (`2435a1d`) — Перенос основного домена `crafo.com.ua` на `crafo-v2`, настройка `vercel.json` (`fra1`) и обновление `sitemap.xml`
 - **Контекст:** Google PageSpeed Insights на мобильном подтвердил зелёную зону **99 / 96 / 100 / 100** на `https://crafo-v2.vercel.app/`. Переносим боевой домен `crafo.com.ua` и `www.crafo.com.ua` на `crafo-v2` (без изменения `craftchoco-live` / `craft-choco.vercel.app`).
 - **Что сделано:**
   - `vercel.json`: перенесены настройки прод-региона Франкфурт (`"regions": ["fra1"]`), ежедневный крон `/api/analytics/daily-digest` (`0 18 * * *`) и заголовки кеширования `/fonts/(.*).woff2`.
