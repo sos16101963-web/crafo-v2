@@ -2,7 +2,6 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { products, resolveCartProduct } from "@/lib/products";
 import { trackEvent, trackFb } from "@/lib/analytics";
 
 export interface CartItem {
@@ -27,20 +26,22 @@ export const useCart = create<CartState>()(
       items: [],
       isOpen: false,
       add: (id, qty = 1) => {
-        const product = resolveCartProduct(id, products);
-        if (product) {
-          trackEvent("add_to_cart", {
-            currency: "UAH",
-            value: product.price * qty,
-            item_name: product.name,
-            quantity: qty,
-          });
-          trackFb("AddToCart", {
-            content_name: product.name,
-            value: product.price * qty,
-            currency: "UAH",
-          });
-        }
+        void import("@/lib/products").then(({ products, resolveCartProduct }) => {
+          const product = resolveCartProduct(id, products);
+          if (product) {
+            trackEvent("add_to_cart", {
+              currency: "UAH",
+              value: product.price * qty,
+              item_name: product.name,
+              quantity: qty,
+            });
+            trackFb("AddToCart", {
+              content_name: product.name,
+              value: product.price * qty,
+              currency: "UAH",
+            });
+          }
+        });
         return set((state) => {
           const existing = state.items.find((i) => i.id === id);
           if (existing) {

@@ -13,7 +13,16 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-28 — Финальное ускорение мобильного PageSpeed в зелёную зону (90+): zero-reflow Faq/ChapterSpin, единый CSS и -100 КБ JS
+### 2026-11-28 — Финальная полировка JS-бандла (-33 КБ br каталога из `store/cart.ts`), `Lenis.resize()` и чистота таймеров
+- **Контекст (`lh-sim.json` на коммите `ffb66fc`):** локальный `simulate` Lighthouse уже вырос с `78` до **`83`**, `FCP: 1.5 → 1.3 с`, `LCP: 2.9 → 2.4 с` (`elementRenderDelay: 788 → 269 мс`), `Speed Index: 2.4 → 1.4 с (1.00)`, `Forced Reflow: 88 → 0 мс`, `CSS: 2 → 1`.
+- **Что сделано:**
+  - `src/store/cart.ts`: удалён статический импорт `products` и `resolveCartProduct` — аналитика добавления в корзину переведена на ленивый `import("@/lib/products")`, что убирает `94.4 КБ` (`33.2 КБ` br) чанк каталога со старта всех маршрутов.
+  - `src/components/showcase/BonbonShowcase3D.tsx`: в `handleJumpTo` добавлен вызов `lenisRef.current.resize()` внутри `requestAnimationFrame` перед `scrollTo` (точный переход с первого клика по правому рельсу к `#inspector` после маунта глав 2–9).
+  - `src/components/site/lazy-toaster.tsx` и `lead-magnet-lazy.tsx`: в `LazyToaster` убран фоновый 10-секундный таймер (загрузка строго по взаимодействию или `crafo:toast`); в `LeadMagnetLazy` таймер стартует после первого жеста (или через `20 с`), чтобы не будить тихое окно аудитов на медленном 4G.
+  - `src/components/site/site-shell.tsx`: обрезаны лишние поля (`flavorNotes`, `perfectFor`, `dietary`, дополнительные кадры `gallery` кроме `[0]`) у `initialProducts`.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build` (125 страниц), пуш в `origin/main` и финальный замер Lighthouse (`lh-final.json`).
+
+### 2026-11-28 (`ffb66fc`) — Финальное ускорение мобильного PageSpeed в зелёную зону (90+): zero-reflow Faq/ChapterSpin, единый CSS и -100 КБ JS
 - **Причины отставания (`lh.json` на коммите `5f10b5f`, TTFB всего 40–184 мс — проблема НЕ в домене):**
   - Вторичный render-blocking CSS (`1.4 КБ`) из неиспользуемых `next/font/google` (`Inter_Tight` и `JetBrains_Mono`).
   - `@radix-ui/react-accordion` в `Faq` (`getBoundingClientRect()` при монтировании) ломал пропуск секций `.cv-auto` и вызывал `1 848 мс` Style & Layout + `83 мс` forced reflow.

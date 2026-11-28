@@ -36,6 +36,30 @@ export function SiteShell({ locale }: { locale: Locale }) {
   });
 
   const allProducts = catalogFor(locale);
+  const initialProducts = allProducts.slice(0, 6).map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    categoryLabel: p.categoryLabel,
+    price: p.price,
+    priceFrom: p.priceFrom,
+    weight: p.weight,
+    cocoa: p.cocoa,
+    rating: p.rating,
+    reviews: p.reviews,
+    badges: p.badges,
+    short: p.short,
+    character: p.character,
+    contents: p.contents,
+    description: p.description,
+    ingredients: p.ingredients,
+    storage: p.storage,
+    image: p.image,
+    cutImage: p.cutImage,
+    gallery: p.gallery?.length ? [p.gallery[0]] : undefined,
+    variants: p.variants,
+    alt: p.alt,
+  }));
   const categoryCounts: Record<string, number> = {
     all: allProducts.length,
     sets: allProducts.filter((p) => p.category === "sets").length,
@@ -64,7 +88,7 @@ export function SiteShell({ locale }: { locale: Locale }) {
           <Catalog
             locale={locale}
             initialLimit={6}
-            initialProducts={allProducts.slice(0, 6)}
+            initialProducts={initialProducts}
             categoryCounts={categoryCounts}
           />
         </div>

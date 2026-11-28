@@ -264,11 +264,14 @@ export const BonbonShowcase3D: React.FC<{
     const scrollToTarget = (attempt = 0) => {
       const el = document.getElementById(id);
       if (el) {
-        if (lenisRef.current) {
-          lenisRef.current.scrollTo(el, { offset: 0, duration: 1.1 });
-        } else {
-          el.scrollIntoView({ behavior: "smooth" });
-        }
+        requestAnimationFrame(() => {
+          if (lenisRef.current) {
+            lenisRef.current.resize();
+            lenisRef.current.scrollTo(el, { offset: 0, duration: 1.1 });
+          } else {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        });
         return;
       }
       if (attempt < 20) {
