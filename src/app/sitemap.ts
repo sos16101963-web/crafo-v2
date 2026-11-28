@@ -10,7 +10,7 @@ import { SHOWCASE_SEO_CHAPTERS } from "@/lib/showcase/seoChapters";
  * Останній реліз контенту та технічного SEO для комерційних сторінок сайту.
  * Фіксована дата запобігає знеціненню тега <lastmod> пошуковими роботами Google.
  */
-const CONTENT_UPDATE_DATE = new Date("2026-11-04T20:00:00.000Z");
+const CONTENT_UPDATE_DATE = new Date("2026-11-28T15:00:00.000Z");
 
 interface PagePairOptions {
   ukPath: string;

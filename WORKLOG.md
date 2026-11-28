@@ -13,7 +13,14 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-28 — Финальная полировка JS-бандла (-33 КБ br каталога из `store/cart.ts`), `Lenis.resize()` и чистота таймеров
+### 2026-11-28 — Перенос основного домена `crafo.com.ua` на `crafo-v2`, настройка `vercel.json` (`fra1`) и обновление `sitemap.xml`
+- **Контекст:** Google PageSpeed Insights на мобильном подтвердил зелёную зону **99 / 96 / 100 / 100** на `https://crafo-v2.vercel.app/`. Переносим боевой домен `crafo.com.ua` и `www.crafo.com.ua` на `crafo-v2` (без изменения `craftchoco-live` / `craft-choco.vercel.app`).
+- **Что сделано:**
+  - `vercel.json`: перенесены настройки прод-региона Франкфурт (`"regions": ["fra1"]`), ежедневный крон `/api/analytics/daily-digest` (`0 18 * * *`) и заголовки кеширования `/fonts/(.*).woff2`.
+  - `src/app/sitemap.ts`: дата `CONTENT_UPDATE_DATE` обновлена на `2026-11-28T15:00:00.000Z` для свежего переобхода всех 125 страниц (включая 18 SEO-страниц `/3d/[chapter]` и сырную коллекцию).
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, деплой в `origin/main`, переключение домена в Vercel, проверка live HTTP/SEO/браузера и отправка IndexNow.
+
+### 2026-11-28 (`6e1d8b0`) — Финальная полировка JS-бандла (-33 КБ br каталога из `store/cart.ts`), `Lenis.resize()` и чистота таймеров
 - **Контекст (`lh-sim.json` на коммите `ffb66fc`):** локальный `simulate` Lighthouse уже вырос с `78` до **`83`**, `FCP: 1.5 → 1.3 с`, `LCP: 2.9 → 2.4 с` (`elementRenderDelay: 788 → 269 мс`), `Speed Index: 2.4 → 1.4 с (1.00)`, `Forced Reflow: 88 → 0 мс`, `CSS: 2 → 1`.
 - **Что сделано:**
   - `src/store/cart.ts`: удалён статический импорт `products` и `resolveCartProduct` — аналитика добавления в корзину переведена на ленивый `import("@/lib/products")`, что убирает `94.4 КБ` (`33.2 КБ` br) чанк каталога со старта всех маршрутов.
