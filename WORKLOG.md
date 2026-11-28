@@ -18,7 +18,12 @@
 - **Что сделано:**
   - `vercel.json`: перенесены настройки прод-региона Франкфурт (`"regions": ["fra1"]`), ежедневный крон `/api/analytics/daily-digest` (`0 18 * * *`) и заголовки кеширования `/fonts/(.*).woff2`.
   - `src/app/sitemap.ts`: дата `CONTENT_UPDATE_DATE` обновлена на `2026-11-28T15:00:00.000Z` для свежего переобхода всех 125 страниц (включая 18 SEO-страниц `/3d/[chapter]` и сырную коллекцию).
-- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, деплой в `origin/main`, переключение домена в Vercel, проверка live HTTP/SEO/браузера и отправка IndexNow.
+- **Результат переноса и индексации (проверено вживую):**
+  - В Vercel домены `crafo.com.ua` и `www.crafo.com.ua` (`308 → crafo.com.ua`) перенесены с `craft-choco` на `crafo-v2`; резервный домен `craft-choco.vercel.app` сохранён на старом проекте.
+  - `https://crafo.com.ua/` → `HTTP 200` (SSL валиден, `BONBON PRO`, `canonical="https://crafo.com.ua"`), `https://www.crafo.com.ua/` → `HTTP 308 → https://crafo.com.ua/`.
+  - Проверены `HTTP 200`: `/google544c907bce93eb40.html`, `/6e0f826922f6400981377ffc52e370a8.txt`, `/robots.txt`, `/sitemap.xml` (`114` URL, `<lastmod> 2026-11-28`, включая `/3d/` главы), `/3d`, `/ru/3d/rentgen-i-teplovizor-konfety`, `/podarunky/gran-nasolody`.
+  - Отправлен `POST https://crafo.com.ua/api/indexnow` → `HTTP 200` (`{"ok":true,"count":114,"indexnow":200,"bing":200}`).
+  - Браузерная проверка на живом `https://crafo.com.ua/`: мобильный (`390×844`), десктоп (`1440×900`, первый клик по рельсе «07 360°» точно приземляется на `#inspector`) и `/ru/3d/rentgen-i-teplovizor-konfety` — `0` ошибок консоли.
 
 ### 2026-11-28 (`6e1d8b0`) — Финальная полировка JS-бандла (-33 КБ br каталога из `store/cart.ts`), `Lenis.resize()` и чистота таймеров
 - **Контекст (`lh-sim.json` на коммите `ffb66fc`):** локальный `simulate` Lighthouse уже вырос с `78` до **`83`**, `FCP: 1.5 → 1.3 с`, `LCP: 2.9 → 2.4 с` (`elementRenderDelay: 788 → 269 мс`), `Speed Index: 2.4 → 1.4 с (1.00)`, `Forced Reflow: 88 → 0 мс`, `CSS: 2 → 1`.
