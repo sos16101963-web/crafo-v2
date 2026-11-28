@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { Header } from "@/components/site/header";
 import { BonbonShowcase3D } from "@/components/showcase/BonbonShowcase3D";
 import { ThermoBanner } from "@/components/site/thermo-banner";
-import { PhotoMarquee } from "@/components/site/photo-marquee";
+import { PhotoMarqueeLazy } from "@/components/site/photo-marquee-lazy";
 import { HolidayBanner } from "@/components/site/holiday-banner";
 import { Features } from "@/components/site/features";
 import { About } from "@/components/site/about";
@@ -29,11 +29,7 @@ const LeadMagnet = dynamic(() => import("@/components/site/lead-magnet").then((m
  * uk: путь «/» (root-группа (uk)), ru: путь «/ru» (root-группа (ru)).
  */
 export function SiteShell({ locale }: { locale: Locale }) {
-  ReactDOM.preload("/frames/mobile/spin/frame_0000.webp", {
-    as: "image",
-    fetchPriority: "high",
-    media: "(max-width: 767px)",
-  });
+  // Мобильный постер встроен в HTML (data URI в ChapterSpin) — preload нужен только десктопному постеру
   ReactDOM.preload("/frames/posters/spin.webp", {
     as: "image",
     fetchPriority: "high",
@@ -49,7 +45,7 @@ export function SiteShell({ locale }: { locale: Locale }) {
         <BonbonShowcase3D locale={locale} />
         <div className="cv-auto">
           <ThermoBanner locale={locale} />
-          <PhotoMarquee locale={locale} />
+          <PhotoMarqueeLazy locale={locale} />
 
           {/* Сезонний блок: Солодкі подарунки на Миколая (6 грудня) та Новий Рік */}
           <HolidayBanner locale={locale} />

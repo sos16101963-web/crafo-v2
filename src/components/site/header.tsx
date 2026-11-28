@@ -56,24 +56,6 @@ function useScrolled(threshold = 24) {
   return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
-function useInDarkShowcase() {
-  const subscribe = useCallback((cb: () => void) => {
-    window.addEventListener("scroll", cb, { passive: true });
-    window.addEventListener("resize", cb, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", cb);
-      window.removeEventListener("resize", cb);
-    };
-  }, []);
-  const getSnapshot = useCallback(() => {
-    const el = document.getElementById("showcase-3d-root");
-    if (!el) return false;
-    const rect = el.getBoundingClientRect();
-    return rect.top <= 80 && rect.bottom > 80;
-  }, []);
-  return useSyncExternalStore(subscribe, getSnapshot, () => false);
-}
-
 /** Переключатель языка: UKR ⇄ RU (hreflang-парные пути).
  *  switchPair — явная пара (uk-href, ru-href) текущей страницы;
  *  без неё — обратно совместимый дом/ru. */
@@ -136,19 +118,30 @@ export function Header({
   const openCart = useCart((s) => s.open);
   const mounted = useMounted();
   const scrolled = useScrolled();
-  const inDarkShowcase = useInDarkShowcase();
+  const [inDarkShowcase, setInDarkShowcase] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [has3D, setHas3D] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
 
   useEffect(() => {
-    setHas3D(Boolean(document.getElementById("showcase-3d-root")));
+    const hasShowcase = Boolean(document.getElementById("showcase-3d-root"));
+    setHas3D(hasShowcase);
+    setInDarkShowcase(hasShowcase && window.scrollY < 400);
+
+    const onShowcaseVis = (e: Event) => {
+      const custom = e as CustomEvent<boolean>;
+      setInDarkShowcase(Boolean(custom.detail));
+    };
     const onSoundState = (e: Event) => {
       const custom = e as CustomEvent<boolean>;
       setSoundOn(Boolean(custom.detail));
     };
+    window.addEventListener("crafo:showcase-visibility", onShowcaseVis);
     window.addEventListener("crafo:sound-state", onSoundState);
-    return () => window.removeEventListener("crafo:sound-state", onSoundState);
+    return () => {
+      window.removeEventListener("crafo:showcase-visibility", onShowcaseVis);
+      window.removeEventListener("crafo:sound-state", onSoundState);
+    };
   }, []);
 
   const solid = solidHeader || scrolled;

@@ -18,14 +18,13 @@ import { soundEngine } from "@/lib/showcase/soundEngine";
 import { useCart } from "@/store/cart";
 import { ChapterSpin } from "./ChapterSpin";
 
-const ChapterCrunch = dynamic(() => import("./ChapterCrunch").then((m) => m.ChapterCrunch));
-const ChapterLamination = dynamic(() => import("./ChapterLamination").then((m) => m.ChapterLamination));
-const ChapterGanache = dynamic(() => import("./ChapterGanache").then((m) => m.ChapterGanache));
-const ChapterTempering = dynamic(() => import("./ChapterTempering").then((m) => m.ChapterTempering));
-const ChapterScanner = dynamic(() => import("./ChapterScanner").then((m) => m.ChapterScanner));
-const ChapterInspector360 = dynamic(() => import("./ChapterInspector360").then((m) => m.ChapterInspector360));
-const ChapterLineup = dynamic(() => import("./ChapterLineup").then((m) => m.ChapterLineup));
-const ChapterOrder = dynamic(() => import("./ChapterOrder").then((m) => m.ChapterOrder));
+const ShowcaseChaptersRestSSR = dynamic(() =>
+  import("./ShowcaseChaptersRest").then((m) => m.ShowcaseChaptersRest),
+);
+const ShowcaseChaptersRestClient = dynamic(
+  () => import("./ShowcaseChaptersRest").then((m) => m.ShowcaseChaptersRest),
+  { ssr: false },
+);
 
 const CHAPTER_SEQUENCES: Record<string, SequenceId[]> = {
   spin: ["spin"],
@@ -56,6 +55,7 @@ export const BonbonShowcase3D: React.FC<{
   const [inShowcase, setInShowcase] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [soundBannerDismissed, setSoundBannerDismissed] = useState(false);
+  const [restUnlocked, setRestUnlocked] = useState(standalone3d || Boolean(initialChapter));
   const cartOpen = useCart((s) => s.isOpen);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -79,12 +79,11 @@ export const BonbonShowcase3D: React.FC<{
     setProfile(detected);
     setSequenceResolution(detected.useMobileFrames);
 
-    if (detected.tier === "instant") {
-      return;
-    }
-
     const unlock = () => {
-      activateStreaming();
+      setRestUnlocked(true);
+      if (detected.tier !== "instant") {
+        activateStreaming();
+      }
       cleanupListeners();
     };
 
@@ -197,6 +196,12 @@ export const BonbonShowcase3D: React.FC<{
     let ticking = false;
     let scrollRaf = 0;
 
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("crafo:showcase-visibility", { detail: window.scrollY < 400 }),
+      );
+    }
+
     const updateActive = () => {
       ticking = false;
       const rootEl = rootRef.current;
@@ -207,6 +212,7 @@ export const BonbonShowcase3D: React.FC<{
           inShowcaseRef.current = visible;
           setInShowcase(visible);
           soundEngine.setShowcaseActive(visible);
+          window.dispatchEvent(new CustomEvent("crafo:showcase-visibility", { detail: visible }));
         }
       }
 
@@ -237,6 +243,7 @@ export const BonbonShowcase3D: React.FC<{
     return () => {
       cancelAnimationFrame(scrollRaf);
       window.removeEventListener("scroll", onScroll);
+      window.dispatchEvent(new CustomEvent("crafo:showcase-visibility", { detail: false }));
     };
   }, [runEvictionAround]);
 
@@ -248,18 +255,27 @@ export const BonbonShowcase3D: React.FC<{
   };
 
   const handleJumpTo = (id: string) => {
+    setRestUnlocked(true);
     activateStreaming();
     soundEngine.playTick();
     if (standalone3d && typeof window !== "undefined") {
       window.history.replaceState(null, "", chapterPath(id as ShowcaseChapterId, locale));
     }
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(el, { offset: 0, duration: 1.1 });
-    } else {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
+    const scrollToTarget = (attempt = 0) => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(el, { offset: 0, duration: 1.1 });
+        } else {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+        return;
+      }
+      if (attempt < 10) {
+        window.setTimeout(() => scrollToTarget(attempt + 1), 50);
+      }
+    };
+    scrollToTarget();
   };
 
   useEffect(() => {
@@ -320,38 +336,21 @@ export const BonbonShowcase3D: React.FC<{
         profile={profile}
         onActive={chapterHandlers.spin}
       />
-      <ChapterCrunch
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.crunch}
-      />
-      <ChapterLamination
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.lamination}
-      />
-      <ChapterGanache
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.ganache}
-      />
-      <ChapterTempering
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.tempering}
-      />
-      <ChapterScanner
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.scanner}
-      />
-      <ChapterInspector360
-        locale={locale}
-        profile={profile}
-        onActive={chapterHandlers.inspector}
-      />
-      <ChapterLineup locale={locale} />
-      <ChapterOrder locale={locale} standalone3d={standalone3d} />
+      {standalone3d ? (
+        <ShowcaseChaptersRestSSR
+          locale={locale}
+          profile={profile}
+          standalone3d
+          chapterHandlers={chapterHandlers}
+        />
+      ) : restUnlocked ? (
+        <ShowcaseChaptersRestClient
+          locale={locale}
+          profile={profile}
+          standalone3d={false}
+          chapterHandlers={chapterHandlers}
+        />
+      ) : null}
 
       {/* Seamless Obsidian -> Warm Cream Bridge into full storefront catalog */}
       {!standalone3d && (

@@ -185,14 +185,21 @@ export const ChapterCrunch: React.FC<ChapterCrunchProps> = ({ locale, profile, o
       className={isInstant ? "relative min-h-screen bg-black" : "relative h-[340vh] bg-black"}
     >
       <div className="sticky top-0 h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-between bg-black pt-20 pb-24 px-4 sm:py-24 sm:px-12 lg:px-20">
-        <img
-          src={isInstant ? "/plates/split-passion.png" : "/frames/posters/crunch.webp"}
-          alt="CraftChoco Crunch"
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none transition-opacity duration-300"
+        <picture
+          className="absolute inset-0 w-full h-full pointer-events-none select-none transition-opacity duration-300"
           style={{ opacity: canvasReady ? 0 : 1 }}
-        />
+        >
+          {!isInstant && (
+            <source media="(max-width: 767px)" srcSet="/frames/mobile/crunch/frame_0000.webp" />
+          )}
+          <img
+            src={isInstant ? "/plates/split-passion.png" : "/frames/posters/crunch.webp"}
+            alt="CraftChoco Crunch"
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-contain"
+          />
+        </picture>
 
         {!isInstant && (
           <canvas

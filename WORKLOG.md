@@ -13,7 +13,16 @@
 
 ## Журнал изменений и деплоев
 
-### 2026-11-28 — Снятие preload шрифтов с первого экрана (FCP/LCP на медленном 4G)
+### 2026-11-28 — Встроенный 5.8 КБ мобильный LCP-постер, снятие forced reflow в `Header` и отложенные главы 2–9 на главной
+- **Что сделано:**
+  - `src/lib/showcase/heroPosterInline.ts` + `ChapterSpin.tsx` + `site-shell.tsx`: мобильный LCP-постер сжат в `480×270` WebP (`5 798` байт, `data:image/webp;base64,...` встроен в HTML — 0 сетевой задержки для LCP на 4G). Для `ChapterCrunch` добавлен `<source media="(max-width: 767px)" srcSet="/frames/mobile/crunch/frame_0000.webp" />`.
+  - `src/components/site/header.tsx` и `BonbonShowcase3D.tsx`: убран синхронный `useInDarkShowcase()` (`getBoundingClientRect()` при гидратации) — состояние тёмного хедера синхронизируется через `window.scrollY < 400` и событие `crafo:showcase-visibility`.
+  - `src/components/showcase/ShowcaseChaptersRest.tsx` и `BonbonShowcase3D.tsx`: главы 2–9 на главной `/` вынесены в отложенный клиентский чанк (`ssr: false`, включаются по первому взаимодействию/скроллу), при этом на `/3d`, `/ru/3d` и всех 18 SEO-маршрутах `/3d/[chapter]` сохраняется 100% SSR HTML. Навигационная рельса с 9 `<a href="/3d/...">` остаётся в SSR главной для Googlebot.
+  - `src/components/site/photo-marquee-lazy.tsx` + `site-shell.tsx`: карусель `PhotoMarquee` (`24` фото) переведена на отложенную клиентскую загрузку с фиксированным плейсхолдером `228px` (`CLS = 0`).
+  - `src/app/globals.css`: удалены неиспользуемые классы `.film-grain`, `.film-intro` и `.journey-goldflow`.
+- **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, деплой и замер Lighthouse / браузера.
+
+### 2026-11-28 (`57543a7`) — Снятие preload шрифтов с первого экрана (FCP/LCP на медленном 4G)
 - **Что сделано:** в `src/components/site/layout-base.tsx` для `Inter_Tight` отключён `preload` (`preload: false`, `display: "swap"`, `adjustFontFallback: true`). По водопаду Lighthouse два шрифта (`44 КБ` + `17 КБ`) стартовали вместе с блокирующим CSS (`21 КБ`) и LCP-постером `frame_0000.webp` и делили с ними канал; текст теперь рисуется запасным шрифтом без сдвига макета.
 - **Контекст:** PSI mobile после предыдущих правок: `86` (TBT `40 мс`, CLS `0`, FCP `2.2 с`, LCP `3.8 с`).
 - **Проверка:** `npx.cmd tsc --noEmit`, `npm.cmd run build`, пуш и замер.

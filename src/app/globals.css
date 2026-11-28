@@ -422,50 +422,6 @@
   border-radius: 6px;
 }
 
-/* ---------- киноплёнка: зерно и кино-эффекты ---------- */
-
-.film-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  opacity: 0.07;
-  mix-blend-mode: overlay;
-  animation: film-grain 0.7s steps(4) infinite;
-}
-@keyframes film-grain {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-3%, 2%); }
-  50% { transform: translate(2%, -3%); }
-  75% { transform: translate(-2%, -2%); }
-  100% { transform: translate(0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .film-grain { animation: none; }
-}
-
-/* кино открывается из темноты при загрузке */
-.film-intro {
-  animation: film-intro 1.7s ease-out 0.15s both;
-}
-@keyframes film-intro {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .film-intro { animation: none; opacity: 0; }
-}
-
-/* ——— Шоколадное погружение (3D) ——— */
-/* плавящееся золото на прелоадере */
-.journey-goldflow {
-  animation: journey-goldflow 2.6s linear infinite;
-}
-@keyframes journey-goldflow {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .journey-goldflow { animation: none; }
-}
-
 /* ---------- 2026–2027 Нативные переходы между страницами и плавные аккордеоны ---------- */
 @view-transition {
   navigation: auto;

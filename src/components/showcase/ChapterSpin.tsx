@@ -15,6 +15,7 @@ import {
   subscribeSequence,
 } from "@/lib/showcase/frameSequence";
 import { soundEngine } from "@/lib/showcase/soundEngine";
+import { HERO_POSTER_MOBILE_DATA_URI } from "@/lib/showcase/heroPosterInline";
 
 interface ChapterSpinProps {
   locale: Locale;
@@ -190,7 +191,7 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
             transform: "translate3d(0, 18%, 0) scale(0.64)",
           }}
         >
-          <source media="(max-width: 767px)" srcSet="/frames/mobile/spin/frame_0000.webp" />
+          <source media="(max-width: 767px)" srcSet={HERO_POSTER_MOBILE_DATA_URI} />
           <img
             src="/frames/posters/spin.webp"
             alt="CraftChoco BONBON PRO"
