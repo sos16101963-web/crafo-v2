@@ -271,7 +271,7 @@ export const BonbonShowcase3D: React.FC<{
         }
         return;
       }
-      if (attempt < 10) {
+      if (attempt < 20) {
         window.setTimeout(() => scrollToTarget(attempt + 1), 50);
       }
     };

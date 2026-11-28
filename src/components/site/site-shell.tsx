@@ -1,10 +1,10 @@
 import ReactDOM from "react-dom";
-import dynamic from "next/dynamic";
 import { Header } from "@/components/site/header";
 import { BonbonShowcase3D } from "@/components/showcase/BonbonShowcase3D";
 import { ThermoBanner } from "@/components/site/thermo-banner";
 import { PhotoMarqueeLazy } from "@/components/site/photo-marquee-lazy";
 import { HolidayBanner } from "@/components/site/holiday-banner";
+import { Catalog } from "@/components/site/catalog";
 import { Features } from "@/components/site/features";
 import { About } from "@/components/site/about";
 import { Craft } from "@/components/site/craft";
@@ -16,13 +16,12 @@ import { ContactCta } from "@/components/site/contact";
 import { Footer } from "@/components/site/footer";
 import { CartSheetLazy } from "@/components/site/cart-sheet-lazy";
 import { SommelierLazy } from "@/components/site/sommelier-lazy";
+import { LeadMagnetLazy } from "@/components/site/lead-magnet-lazy";
 import { MobileBottomBar } from "@/components/site/mobile-bottom-bar";
 import { JsonLd } from "@/components/site/json-ld";
 import { StarSprite } from "@/components/site/stars";
+import { catalogFor } from "@/lib/products";
 import type { Locale } from "@/lib/i18n";
-
-const Catalog = dynamic(() => import("@/components/site/catalog").then((m) => m.Catalog));
-const LeadMagnet = dynamic(() => import("@/components/site/lead-magnet").then((m) => m.LeadMagnet));
 
 /**
  * Оболочка сайта — одна на обе локали.
@@ -35,6 +34,16 @@ export function SiteShell({ locale }: { locale: Locale }) {
     fetchPriority: "high",
     media: "(min-width: 768px)",
   });
+
+  const allProducts = catalogFor(locale);
+  const categoryCounts: Record<string, number> = {
+    all: allProducts.length,
+    sets: allProducts.filter((p) => p.category === "sets").length,
+    tiles: allProducts.filter((p) => p.category === "tiles").length,
+    flowers: allProducts.filter((p) => p.category === "flowers").length,
+    cheese: allProducts.filter((p) => p.category === "cheese").length,
+  };
+
   return (
     <>
       <JsonLd locale={locale} />
@@ -43,21 +52,43 @@ export function SiteShell({ locale }: { locale: Locale }) {
       <main className="flex-1">
         {/* Флагманская 3D-презентация BONBON PRO (Poster-First, 0 кадров до первого жеста) */}
         <BonbonShowcase3D locale={locale} />
+
         <div className="cv-auto">
           <ThermoBanner locale={locale} />
           <PhotoMarqueeLazy locale={locale} />
-
           {/* Сезонний блок: Солодкі подарунки на Миколая (6 грудня) та Новий Рік */}
           <HolidayBanner locale={locale} />
+        </div>
 
-          <Catalog locale={locale} initialLimit={6} />
+        <div className="cv-auto">
+          <Catalog
+            locale={locale}
+            initialLimit={6}
+            initialProducts={allProducts.slice(0, 6)}
+            categoryCounts={categoryCounts}
+          />
+        </div>
+
+        <div className="cv-auto">
           <SommelierLazy locale={locale} />
+        </div>
+
+        <div className="cv-auto">
           <Features locale={locale} />
           <About locale={locale} />
+        </div>
+
+        <div className="cv-auto">
           <Craft locale={locale} />
           <Reviews locale={locale} />
+        </div>
+
+        <div className="cv-auto">
           <Delivery locale={locale} />
           <Faq locale={locale} />
+        </div>
+
+        <div className="cv-auto">
           <Corporate locale={locale} />
           <ContactCta locale={locale} />
         </div>
@@ -66,7 +97,7 @@ export function SiteShell({ locale }: { locale: Locale }) {
         <Footer locale={locale} />
       </div>
       <CartSheetLazy locale={locale} />
-      <LeadMagnet locale={locale} />
+      <LeadMagnetLazy locale={locale} />
       <MobileBottomBar locale={locale} isHome />
     </>
   );

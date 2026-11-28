@@ -64,7 +64,7 @@ export function CatalogPage({ locale, path }: { locale: Locale; path: string }) 
         </ul>
       </section>
 
-      <Catalog locale={locale} />
+      <Catalog locale={locale} initialProducts={products} />
     </InnerShell>
   );
 }

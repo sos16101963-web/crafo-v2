@@ -1,25 +1,56 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ShoppingBag, MessageCircle, Send, Phone } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { productPath } from "@/lib/slugs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCart } from "@/store/cart";
-import { formatProductPrice, formatPrice, type ProductGalleryItem, type ProductVariant } from "@/lib/products";
-import { getDict } from "@/lib/i18n";
+import type { CategoryId, ProductGalleryItem, ProductVariant } from "@/lib/products";
 import type { Locale } from "@/lib/i18n";
 import { site } from "@/lib/site";
-import { toast } from "sonner";
 import { trackIntent } from "@/lib/analytics";
 import { Stars } from "./stars";
 
-interface CardProduct {
+const ProductCardDialog = dynamic(
+  () => import("./product-card-dialog").then((m) => m.ProductCardDialog),
+  { ssr: false },
+);
+
+const CARD_COPY = {
+  uk: {
+    inCart: "В корзину",
+    added: "Додано в корзину",
+    details: "Детальніше",
+    aboutProduct: (name: string) => `Детальніше про товар: ${name}`,
+    addToCart: (name: string) => `В корзину: ${name}`,
+    cocoa: "Какао",
+    hit: "Хіт продажів",
+    isNew: "Новинка",
+    cutAlt: "Розріз: соковитий ганаш усередині",
+    cutHover: "Наведіть — розріз начинки",
+  },
+  ru: {
+    inCart: "В корзину",
+    added: "Добавлено в корзину",
+    details: "Подробнее",
+    aboutProduct: (name: string) => `Подробнее о товаре: ${name}`,
+    addToCart: (name: string) => `В корзину: ${name}`,
+    cocoa: "Какао",
+    hit: "Хит продаж",
+    isNew: "Новинка",
+    cutAlt: "Разрез: сочный ганаш внутри",
+    cutHover: "Наведите — разрез начинки",
+  },
+} as const;
+
+export interface CardProduct {
   id: string;
   name: string;
+  category?: CategoryId;
   categoryLabel: string;
   price: number;
   priceFrom?: boolean;
@@ -28,6 +59,7 @@ interface CardProduct {
   rating: number;
   reviews: number;
   badges: ("hit" | "new")[];
+  short?: string;
   character: string;
   contents: string[];
   description: string;
@@ -40,9 +72,15 @@ interface CardProduct {
   alt: string;
 }
 
+function formatCardPrice(price: number, priceFrom: boolean | undefined, locale: Locale) {
+  const formatted = `${price.toLocaleString(locale === "uk" ? "uk-UA" : "ru-RU")} ₴`;
+  return priceFrom ? `${locale === "uk" ? "від" : "от"} ${formatted}` : formatted;
+}
+
 export function ProductCard({ product, locale }: { product: CardProduct; locale: Locale }) {
-  const t = getDict(locale);
+  const c = CARD_COPY[locale];
   const [open, setOpen] = useState(false);
+  const [dialogLoaded, setDialogLoaded] = useState(false);
   const add = useCart((s) => s.add);
 
   const variants = product.variants ?? [];
@@ -66,16 +104,19 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
 
   const handleAdd = () => {
     add(activeCartId);
-    toast.success(t.common.added, {
-      description: `«${activeName}» — ${formatProductPrice({ price: activePrice, priceFrom: activePriceFrom } as never, locale)}`,
+    const priceLabel = formatCardPrice(activePrice, activePriceFrom, locale);
+    window.dispatchEvent(new Event("crafo:toast"));
+    void import("sonner").then(({ toast }) => {
+      toast.success(c.added, {
+        description: `«${activeName}» — ${priceLabel}`,
+      });
     });
   };
 
-  const isFreeItem = (item: string) => item.includes(t.common.freeBadge);
   const hoverImage = product.cutImage ?? product.gallery?.[0]?.src;
-  const hoverAlt = product.cutImage ? t.catalog.cutAlt : (product.gallery?.[0]?.alt ?? product.alt);
+  const hoverAlt = product.cutImage ? c.cutAlt : (product.gallery?.[0]?.alt ?? product.alt);
   const hoverLabel = product.cutImage
-    ? t.catalog.cutHover
+    ? c.cutHover
     : (product.gallery?.[0]?.label ?? (locale === "uk" ? "У коробці" : "В коробке"));
 
   return (
@@ -102,12 +143,12 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {product.badges.includes("hit") && (
             <Badge className="w-fit rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-choco-950 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45),0_2px_8px_rgba(196,154,74,0.35)] hover:bg-gold-500">
-              {t.catalog.hit}
+              {c.hit}
             </Badge>
           )}
           {product.badges.includes("new") && (
             <Badge className="w-fit rounded-full bg-choco-900 px-3 py-1 text-xs font-bold text-gold-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_2px_8px_rgba(21,12,7,0.35)] hover:bg-choco-900">
-              {t.catalog.isNew}
+              {c.isNew}
             </Badge>
           )}
         </div>
@@ -116,183 +157,38 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
             {hoverLabel}
           </span>
         )}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="glass-surface absolute bottom-3 right-3 translate-y-2 rounded-full px-4 font-semibold text-choco-900 opacity-0 shadow-lg backdrop-blur transition-all duration-300 hover:bg-white group-hover:translate-y-0 group-hover:opacity-100"
-            >
-              {t.common.details}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[92vh] overflow-y-auto bg-cream sm:max-w-3xl scrollbar-thin">
-            <DialogHeader>
-              <DialogTitle className="sr-only">{product.name}</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="relative aspect-square overflow-hidden rounded-2xl">
-                <Image src={dialogImageSrc} alt={product.alt} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">{product.categoryLabel}</p>
-                <h3 className="mt-1.5 font-display text-2xl font-bold text-choco-900">{product.name}</h3>
-                <p className="mt-1 text-sm italic leading-snug text-choco-500">{product.character}</p>
-                <div className="mt-2 flex items-center gap-2 text-sm text-choco-600">
-                  <Stars rating={product.rating} locale={locale} />
-                  <span className="font-semibold text-choco-800">{product.rating}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{product.reviews} {t.common.reviewsWord}</span>
-                </div>
-                <div className="mt-4 space-y-2.5 text-[15px] leading-relaxed text-choco-700">
-                  {product.description.split("\n\n").map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))}
-                </div>
-
-                <div className="mt-4 rounded-2xl bg-cream-100 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold-700">{t.common.inSet}</p>
-                  <ul className="mt-2.5 space-y-1.5 text-sm">
-                    {product.contents.map((item) => {
-                      const isFree = isFreeItem(item);
-                      return (
-                        <li key={item} className="flex items-start gap-2">
-                          <Check
-                            className={`mt-0.5 h-4 w-4 shrink-0 ${isFree ? "text-gold-700" : "text-choco-400"}`}
-                            aria-hidden="true"
-                          />
-                          {isFree ? (
-                            <span className="font-semibold leading-snug text-choco-900">
-                              {item.replace(` — ${t.common.freeBadge}`, "")}{" "}
-                              <span className="ml-0.5 inline-block rounded-full bg-gold-500/20 px-2 py-px text-[10px] font-bold uppercase tracking-wide text-gold-700">
-                                {t.common.freeBadge}
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="leading-snug text-choco-800">{item}</span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-
-                <dl className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-cream-100 p-4 text-sm">
-                  {product.cocoa && (
-                    <div>
-                      <dt className="text-choco-500">{t.common.cocoa}</dt>
-                      <dd className="font-bold text-choco-900">{product.cocoa}%</dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-choco-500">{t.common.weight}</dt>
-                    <dd className="font-bold text-choco-900">{activeWeight}</dd>
-                  </div>
-                  <div className="col-span-2">
-                    <dt className="text-choco-500">{t.common.composition}</dt>
-                    <dd className="font-medium leading-snug text-choco-800">{product.ingredients}</dd>
-                  </div>
-                  <div className="col-span-2">
-                    <dt className="text-choco-500">{t.common.storage}</dt>
-                    <dd className="font-medium text-choco-800">{product.storage}</dd>
-                  </div>
-                </dl>
-
-                {variants.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gold-700">
-                      {locale === "uk" ? "Оберіть розмір коробки:" : "Выберите размер коробки:"}
-                    </p>
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      {variants.map((v) => {
-                        const isSelected = activeVariant?.id === v.id;
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            aria-pressed={isSelected}
-                            onClick={() => selectVariant(v, true)}
-                            className={`rounded-xl border px-2.5 py-2 text-center text-xs transition-all ${
-                              isSelected
-                                ? "border-gold-600 bg-choco-950 font-bold text-gold-300 shadow-sm"
-                                : "border-gold-500/30 bg-white font-semibold text-choco-800 hover:border-gold-500"
-                            }`}
-                          >
-                            <span className="block">{v.label}</span>
-                            <span className={isSelected ? "text-cream" : "text-gold-700"}>{v.price} ₴</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-auto pt-5">
-                  <div className="mb-3 flex items-baseline gap-3">
-                    <span className="font-display text-3xl font-bold text-choco-900">
-                      {formatProductPrice({ price: activePrice, priceFrom: activePriceFrom } as never, locale)}
-                    </span>
-                  </div>
-                  {activePriceFrom && (
-                    <p className="mb-3 text-xs leading-relaxed text-choco-500">{t.common.priceFromNote}</p>
-                  )}
-                  {/* Термобокс — снятие риска прямо в карточке */}
-                  <p className="mb-3 rounded-xl bg-gold-500/10 px-3 py-2 text-xs font-semibold text-choco-800">
-                    ❄ {t.thermo.title}. {t.thermo.text}
-                  </p>
-                  <Button
-                    onClick={() => {
-                      handleAdd();
-                      setOpen(false);
-                    }}
-                    className="btn-choco-luxe h-12 w-full rounded-full text-base font-bold"
-                  >
-                    <ShoppingBag className="mr-2 h-5 w-5" /> {t.common.inCart}
-                  </Button>
-
-                  {/* Швидке замовлення в 1 клік без корзини */}
-                  <div className="mt-3.5 border-t border-choco-100 pt-3">
-                    <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wider text-choco-600">
-                      {locale === "uk" ? "Швидке замовлення в 1 клік:" : "Быстрый заказ в 1 клик:"}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <a
-                        href={site.messengers[0].href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => trackIntent("viber", activeName, activePrice)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#7360f2]/30 bg-[#7360f2]/10 py-2.5 text-xs font-bold text-[#5c49d6] transition-colors hover:bg-[#7360f2] hover:text-white"
-                      >
-                        <MessageCircle className="h-4 w-4" /> Viber
-                      </a>
-                      <a
-                        href={site.messengers[2].href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => trackIntent("telegram", activeName, activePrice)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#229ed9]/30 bg-[#229ed9]/10 py-2.5 text-xs font-bold text-[#0088cc] transition-colors hover:bg-[#229ed9] hover:text-white"
-                      >
-                        <Send className="h-4 w-4" /> Telegram
-                      </a>
-                    </div>
-                    <a
-                      href={site.phoneHref}
-                      onClick={() => trackIntent("phone", activeName, activePrice)}
-                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-choco-200 bg-white/90 py-2 text-xs font-bold text-choco-900 transition-colors hover:bg-gold-500 hover:text-choco-950"
-                    >
-                      <Phone className="h-3.5 w-3.5 text-gold-600" />
-                      {locale === "uk" ? "Або подзвонити: 096 253 56 10" : "Или позвонить: 096 253 56 10"}
-                    </a>
-                  </div>
-
-                  <p className="mt-2.5 text-center text-xs text-choco-500">
-                    {t.common.freeDeliveryLine(site.freeShippingFrom.toLocaleString(locale === "uk" ? "uk-UA" : "ru-RU"))}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            setDialogLoaded(true);
+            setOpen(true);
+          }}
+          className="glass-surface absolute bottom-3 right-3 translate-y-2 rounded-full px-4 font-semibold text-choco-900 opacity-0 shadow-lg backdrop-blur transition-all duration-300 hover:bg-white group-hover:translate-y-0 group-hover:opacity-100"
+        >
+          {c.details}
+        </Button>
+        {dialogLoaded && (
+          <ProductCardDialog
+            open={open}
+            onOpenChange={setOpen}
+            product={product}
+            locale={locale}
+            variants={variants}
+            activeVariant={activeVariant}
+            activePrice={activePrice}
+            activeWeight={activeWeight}
+            activePriceFrom={activePriceFrom}
+            activeName={activeName}
+            dialogImageSrc={dialogImageSrc}
+            onSelectVariant={(v) => selectVariant(v, true)}
+            onAddAndClose={() => {
+              handleAdd();
+              setOpen(false);
+            }}
+          />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
@@ -300,7 +196,7 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
         <h3 className="mt-1 font-display text-xl font-bold leading-snug text-choco-900">
           <Link
             href={productPath(product.id, locale)}
-            aria-label={t.common.aboutProduct(product.name)}
+            aria-label={c.aboutProduct(product.name)}
             className="text-left transition-colors hover:text-choco-600"
           >
             {product.name}
@@ -314,7 +210,7 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
           <span aria-hidden="true">·</span>
           <span>
             {activeWeight}
-            {product.cocoa ? ` · ${t.common.cocoa.toLowerCase()} ${product.cocoa}%` : ""}
+            {product.cocoa ? ` · ${c.cocoa.toLowerCase()} ${product.cocoa}%` : ""}
           </span>
         </div>
 
@@ -344,16 +240,16 @@ export function ProductCard({ product, locale }: { product: CardProduct; locale:
         <div className="mt-4 flex items-end justify-between gap-3 pt-1">
           <div>
             <span className="font-display text-2xl font-bold text-choco-900">
-              {formatProductPrice({ price: activePrice, priceFrom: activePriceFrom } as never, locale)}
+              {formatCardPrice(activePrice, activePriceFrom, locale)}
             </span>
           </div>
           <Button
             onClick={handleAdd}
             size="sm"
-            aria-label={t.common.addToCart(activeName)}
+            aria-label={c.addToCart(activeName)}
             className="btn-choco-luxe h-10 rounded-full px-5 font-bold"
           >
-            <ShoppingBag className="mr-1.5 h-4 w-4" /> {t.common.inCart}
+            <ShoppingBag className="mr-1.5 h-4 w-4" /> {c.inCart}
           </Button>
         </div>
 

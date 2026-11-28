@@ -2,14 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { Send, MessageCircle, X } from "lucide-react";
-import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { site } from "@/lib/site";
 import { trackEvent } from "@/lib/analytics";
 
 const LS_KEY = "leadMagnetDismissedAt";
-const SHOW_DELAY_MS = 14000;
+const SHOW_DELAY_MS = 2000;
 const HIDE_DAYS = 3;
+
+const LEAD_COPY = {
+  uk: {
+    title: "Не знаєте, що обрати до вашого свята?",
+    text: "Напишіть у Telegram або Viber — майстер збере індивідуальний бокс за 5 хвилин.",
+    telegram: "Telegram",
+    viber: "Viber",
+    close: "Приховати підказку",
+    aria: "Допомога з вибором подарунка",
+  },
+  ru: {
+    title: "Не знаете, что выбрать к вашему празднику?",
+    text: "Напишите в Telegram или Viber — мастер соберёт индивидуальный бокс за 5 минут.",
+    telegram: "Telegram",
+    viber: "Viber",
+    close: "Скрыть подсказку",
+    aria: "Помощь с выбором подарка",
+  },
+} as const;
 
 /**
  * Лид-магнит «первый контакт»: не знает, что выбрать → майстер соберёт
@@ -17,12 +35,10 @@ const HIDE_DAYS = 3;
  * закрывается и не показывается 3 дня.
  */
 export function LeadMagnet({ locale }: { locale: Locale }) {
-  const t = getDict(locale).leadMagnet;
+  const t = LEAD_COPY[locale];
   const [visible, setVisible] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     let timer: ReturnType<typeof setTimeout>;
     try {
       const dismissed = localStorage.getItem(LS_KEY);
@@ -39,7 +55,7 @@ export function LeadMagnet({ locale }: { locale: Locale }) {
     } catch {}
   };
 
-  if (!mounted || !visible) return null;
+  if (!visible) return null;
 
   return (
     <aside

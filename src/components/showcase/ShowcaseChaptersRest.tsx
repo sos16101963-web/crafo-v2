@@ -1,20 +1,16 @@
 "use client";
 
 import React from "react";
-import dynamic from "next/dynamic";
 import type { Locale } from "@/lib/i18n";
 import type { DeviceProfile } from "@/lib/showcase/deviceTier";
-
-const ChapterCrunch = dynamic(() => import("./ChapterCrunch").then((m) => m.ChapterCrunch));
-const ChapterLamination = dynamic(() => import("./ChapterLamination").then((m) => m.ChapterLamination));
-const ChapterGanache = dynamic(() => import("./ChapterGanache").then((m) => m.ChapterGanache));
-const ChapterTempering = dynamic(() => import("./ChapterTempering").then((m) => m.ChapterTempering));
-const ChapterScanner = dynamic(() => import("./ChapterScanner").then((m) => m.ChapterScanner));
-const ChapterInspector360 = dynamic(() =>
-  import("./ChapterInspector360").then((m) => m.ChapterInspector360),
-);
-const ChapterLineup = dynamic(() => import("./ChapterLineup").then((m) => m.ChapterLineup));
-const ChapterOrder = dynamic(() => import("./ChapterOrder").then((m) => m.ChapterOrder));
+import { ChapterCrunch } from "./ChapterCrunch";
+import { ChapterLamination } from "./ChapterLamination";
+import { ChapterGanache } from "./ChapterGanache";
+import { ChapterTempering } from "./ChapterTempering";
+import { ChapterScanner } from "./ChapterScanner";
+import { ChapterInspector360 } from "./ChapterInspector360";
+import { ChapterLineup } from "./ChapterLineup";
+import { ChapterOrder } from "./ChapterOrder";
 
 export interface ShowcaseChaptersRestProps {
   locale: Locale;

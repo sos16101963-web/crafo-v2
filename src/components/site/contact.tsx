@@ -1,16 +1,10 @@
-"use client";
-
-import { useState } from "react";
-import { Clock, MapPin, MessageCircle, Phone, PhoneCall, Send, Youtube } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Clock, MapPin, MessageCircle, Phone, Send, Youtube } from "lucide-react";
 import { site } from "@/lib/site";
-import { trackEvent } from "@/lib/analytics";
-import { toast } from "sonner";
 import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { TikTokIcon } from "@/components/site/icons";
+import { TrackedLink } from "./tracked-link";
+import { ContactForm } from "./contact-form";
 
 const messengerIcons = {
   Viber: MessageCircle,
@@ -26,28 +20,6 @@ const messengerColors: Record<string, string> = {
 
 export function ContactCta({ locale }: { locale: Locale }) {
   const t = getDict(locale).contacts;
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim()) {
-      toast.error(t.errFields);
-      return;
-    }
-    if (!/^[+0-9\s()\-]{10,18}$/.test(phone.trim())) {
-      toast.error(t.errPhone);
-      return;
-    }
-    setSending(true);
-    setTimeout(() => {
-      setSending(false);
-      setName("");
-      setPhone("");
-      toast.success(t.success, { description: t.successText(name.trim()) });
-    }, 900);
-  };
 
   return (
     <section id="contacts" className="scroll-mt-20 bg-cream py-20 lg:py-28" aria-label={t.aria}>
@@ -69,12 +41,13 @@ export function ContactCta({ locale }: { locale: Locale }) {
                 {site.messengers.map((m) => {
                   const Icon = messengerIcons[m.name as keyof typeof messengerIcons];
                   return (
-                    <a
+                    <TrackedLink
                       key={m.name}
                       href={m.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => trackEvent("contact_click", { channel: m.name })}
+                      eventName="contact_click"
+                      eventParams={{ channel: m.name }}
                       className="group flex items-center gap-4"
                     >
                       <span
@@ -88,12 +61,13 @@ export function ContactCta({ locale }: { locale: Locale }) {
                         <span className="block text-sm text-cream/60">{m.name}</span>
                         <span className="font-bold text-cream group-hover:text-gold-300">{m.hint}</span>
                       </span>
-                    </a>
+                    </TrackedLink>
                   );
                 })}
-                <a
+                <TrackedLink
                   href={site.phoneHref}
-                  onClick={() => trackEvent("contact_click", { channel: "phone" })}
+                  eventName="contact_click"
+                  eventParams={{ channel: "phone" }}
                   className="group flex items-center gap-4"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-gold-400 transition-colors group-hover:bg-gold-500 group-hover:text-choco-950">
@@ -103,12 +77,13 @@ export function ContactCta({ locale }: { locale: Locale }) {
                     <span className="block text-sm text-cream/60">{t.call}</span>
                     <span className="font-bold text-cream group-hover:text-gold-300">{site.phoneShort}</span>
                   </span>
-                </a>
-                <a
+                </TrackedLink>
+                <TrackedLink
                   href={site.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackEvent("contact_click", { channel: "youtube" })}
+                  eventName="contact_click"
+                  eventParams={{ channel: "youtube" }}
                   className="group flex items-center gap-4"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-[#f87171] transition-colors group-hover:bg-[#ff0000] group-hover:text-white">
@@ -118,12 +93,13 @@ export function ContactCta({ locale }: { locale: Locale }) {
                     <span className="block text-sm text-cream/60">YouTube</span>
                     <span className="font-bold text-cream group-hover:text-gold-300">@craft.choco.kharkiv</span>
                   </span>
-                </a>
-                <a
+                </TrackedLink>
+                <TrackedLink
                   href={site.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackEvent("contact_click", { channel: "tiktok" })}
+                  eventName="contact_click"
+                  eventParams={{ channel: "tiktok" }}
                   className="group flex items-center gap-4"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-[#22d3ee] transition-colors group-hover:bg-black group-hover:text-white">
@@ -133,7 +109,7 @@ export function ContactCta({ locale }: { locale: Locale }) {
                     <span className="block text-sm text-cream/60">TikTok</span>
                     <span className="font-bold text-cream group-hover:text-gold-300">@aleksandr_mag_</span>
                   </span>
-                </a>
+                </TrackedLink>
                 <a
                   href={site.googleMaps}
                   target="_blank"
@@ -161,54 +137,22 @@ export function ContactCta({ locale }: { locale: Locale }) {
             </div>
 
             <div className="flex items-center border-t border-white/10 bg-white/[0.03] p-8 sm:p-12 lg:border-l lg:border-t-0">
-              <form onSubmit={handleSubmit} className="w-full" aria-label={t.formTitle}>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold-500/15 text-gold-400">
-                  <PhoneCall className="h-6 w-6" aria-hidden="true" />
-                </span>
-                <h3 className="mt-5 font-display text-3xl font-bold">{t.formTitle}</h3>
-                <p className="mt-2.5 leading-relaxed text-cream/70">
-                  {t.formText}
-                </p>
-                <div className="mt-7 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="callback-name" className="text-cream/85">
-                      {t.yourName}
-                    </Label>
-                    <Input
-                      id="callback-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={t.namePlaceholder}
-                      maxLength={50}
-                      className="h-12 rounded-xl border-white/15 bg-white/[0.06] text-cream placeholder:text-cream/40 focus-visible:ring-gold-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="callback-phone" className="text-cream/85">
-                      {t.phone}
-                    </Label>
-                    <Input
-                      id="callback-phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+380 (__) ___-__-__"
-                      maxLength={18}
-                      className="h-12 rounded-xl border-white/15 bg-white/[0.06] text-cream placeholder:text-cream/40 focus-visible:ring-gold-500"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={sending}
-                    className="btn-gold-luxe h-13 w-full rounded-full py-3.5 text-base font-bold disabled:opacity-60"
-                  >
-                    {sending ? t.sending : t.submit}
-                  </Button>
-                  <p className="text-center text-xs leading-relaxed text-cream/50">
-                    {t.privacy}
-                  </p>
-                </div>
-              </form>
+              <ContactForm
+                locale={locale}
+                copy={{
+                  formTitle: t.formTitle,
+                  formText: t.formText,
+                  yourName: t.yourName,
+                  namePlaceholder: t.namePlaceholder,
+                  phone: t.phone,
+                  submit: t.submit,
+                  sending: t.sending,
+                  privacy: t.privacy,
+                  errFields: t.errFields,
+                  errPhone: t.errPhone,
+                  success: t.success,
+                }}
+              />
             </div>
           </div>
         </div>

@@ -1,16 +1,14 @@
-"use client";
-
 import { BadgeCheck, Building2, CalendarClock, FlaskConical, Send, MessageCircle, Phone } from "lucide-react";
 import { getDict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { site } from "@/lib/site";
-import { trackEvent } from "@/lib/analytics";
+import { TrackedLink } from "./tracked-link";
 
 const icons = [BadgeCheck, Building2, FlaskConical, CalendarClock];
 
 /**
  * Блок для корпоративных клиентов: тиражи с логотипом, счёт юрлицам,
- * дегустационные образцы. CTA — мессенджеры в один клик.
+ * дегустационные образцы. Серверный компонент + TrackedLink на CTA.
  */
 export function Corporate({ locale }: { locale: Locale }) {
   const t = getDict(locale).corporate;
@@ -53,31 +51,34 @@ export function Corporate({ locale }: { locale: Locale }) {
           <h3 className="font-display text-2xl font-bold sm:text-3xl">{t.ctaTitle}</h3>
           <p className="mx-auto mt-3 max-w-xl leading-relaxed text-cream/75">{t.ctaText}</p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <a
+            <TrackedLink
               href={site.messengers[2].href}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackEvent("contact_click", { channel: "telegram", source: "corporate" })}
+              eventName="contact_click"
+              eventParams={{ channel: "telegram", source: "corporate" }}
               className="inline-flex items-center gap-2 rounded-full bg-[#197cae] px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
             >
               <Send className="h-4 w-4" aria-hidden="true" /> Telegram
-            </a>
-            <a
+            </TrackedLink>
+            <TrackedLink
               href={site.messengers[0].href}
-              onClick={() => trackEvent("contact_click", { channel: "viber", source: "corporate" })}
+              eventName="contact_click"
+              eventParams={{ channel: "viber", source: "corporate" }}
               className="inline-flex items-center gap-2 rounded-full bg-[#6f5df1] px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" /> Viber
-            </a>
-            <a
+            </TrackedLink>
+            <TrackedLink
               href={site.messengers[1].href}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackEvent("contact_click", { channel: "whatsapp", source: "corporate" })}
+              eventName="contact_click"
+              eventParams={{ channel: "whatsapp", source: "corporate" }}
               className="inline-flex items-center gap-2 rounded-full bg-[#118159] px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
             >
               <Phone className="h-4 w-4" aria-hidden="true" /> WhatsApp
-            </a>
+            </TrackedLink>
           </div>
           <p className="mt-4 text-xs text-cream/50">{site.phoneShort}</p>
         </div>

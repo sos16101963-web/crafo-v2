@@ -13,6 +13,22 @@
 
 ## Журнал изменений и деплоев
 
+### 2026-11-28 — Финальное ускорение мобильного PageSpeed в зелёную зону (90+): zero-reflow Faq/ChapterSpin, единый CSS и -100 КБ JS
+- **Причины отставания (`lh.json` на коммите `5f10b5f`, TTFB всего 40–184 мс — проблема НЕ в домене):**
+  - Вторичный render-blocking CSS (`1.4 КБ`) из неиспользуемых `next/font/google` (`Inter_Tight` и `JetBrains_Mono`).
+  - `@radix-ui/react-accordion` в `Faq` (`getBoundingClientRect()` при монтировании) ломал пропуск секций `.cv-auto` и вызывал `1 848 мс` Style & Layout + `83 мс` forced reflow.
+  - Бесконечный 60fps idle `rAF`-цикл и `initRaf` (`resize()` + `onScroll()`) в `ChapterSpin.tsx` до первого жеста + 4 скрытых `backdrop-blur-md` оверлея.
+  - Избыточный стартовый клиентский JS на `/` (`getDict`, `@/lib/products`, `sonner`, `@radix-ui/react-dialog`, ранний маунт `CartSheetLazy` / `LazyToaster` / `LeadMagnet`).
+- **Что сделано:**
+  - `src/components/site/layout-base.tsx`: удалены неиспользуемые `Inter_Tight` и `JetBrains_Mono` (шрифты `Playfair Display` и `Manrope` подключены локально в `globals.css`) — в `<head>` остаётся только 1 CSS-файл.
+  - `src/components/site/lazy-toaster.tsx` и `src/components/site/cart-sheet-lazy.tsx`: `Toaster` и `CartSheet` монтируются строго по действию (жест/`crafo:toast` или открытие корзины).
+  - `src/components/site/faq.tsx`: переведён на нативный `<details name="faq">` без `@radix-ui/react-accordion` и без клиентского JS (0 forced reflow, `.cv-auto` работает на 100%).
+  - `src/components/showcase/ChapterSpin.tsx`, `ShowcaseChaptersRest.tsx`, `BonbonShowcase3D.tsx`: старт Web/Canvas-движка отложен до первого жеста или `scrollY > 4`, чтение геометрии вынесено до записи размеров canvas, `rAF` засыпает при отсутствии кадров, скрытые `backdrop-blur-md` оверлеи рендерятся по порогу видимости; в `ShowcaseChaptersRest` убрана двойная вложенность `dynamic()` (исправлен точный скролл по правому рельсу к `#inspector`).
+  - `src/components/site/header.tsx` + `header-mobile-menu.tsx`: убран `getDict`, заменён синхронный `useScrolled()`, мобильный `Sheet` загружается только по клику на меню.
+  - `src/components/site/product-card.tsx` + `product-card-dialog.tsx` + `catalog.tsx` + `catalog-page.tsx`: вынесены `Dialog` (по клику «Детальніше»), `sonner` (динамический `import("sonner")` в обработчиках), `getDict` и `@/lib/products` (подгружается по требованию при поиске/фильтрации/сортировке или клике «Показати весь каталог»).
+  - `src/components/site/corporate.tsx`, `contact.tsx`, `contact-form.tsx`, `tracked-link.tsx`, `lead-magnet.tsx`, `lead-magnet-lazy.tsx`, `site-shell.tsx`: `Corporate` и контактная колонка `ContactCta` переведены в 100% серверные компоненты; `LeadMagnetLazy` отложен на `12 с`; ниже первого экрана добавлена гранулярная изоляция `.cv-auto`.
+- **Проверка:** `npx.cmd tsc --noEmit` (0 ошибок), `npm.cmd run build` (125/125 страниц), пуш в `origin/main` и живой замер Lighthouse + браузера.
+
 ### 2026-11-28 — Встроенный 5.8 КБ мобильный LCP-постер, снятие forced reflow в `Header` и отложенные главы 2–9 на главной
 - **Что сделано:**
   - `src/lib/showcase/heroPosterInline.ts` + `ChapterSpin.tsx` + `site-shell.tsx`: мобильный LCP-постер сжат в `480×270` WebP (`5 798` байт, `data:image/webp;base64,...` встроен в HTML — 0 сетевой задержки для LCP на 4G). Для `ChapterCrunch` добавлен `<source media="(max-width: 767px)" srcSet="/frames/mobile/crunch/frame_0000.webp" />`.

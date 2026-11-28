@@ -56,37 +56,66 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, profile.dprCap);
-      const w = canvas.clientWidth || window.innerWidth;
-      const h = canvas.clientHeight || window.innerHeight;
-      canvas.width = Math.max(320, Math.floor(w * dpr));
-      canvas.height = Math.max(200, Math.floor(h * dpr));
-    };
-    const initRaf = requestAnimationFrame(() => {
-      resize();
-      onScroll();
-    });
-    window.addEventListener("resize", resize);
-
+    let started = false;
+    let isMobile = window.innerWidth < 768;
     let isVisible = true;
-    let dirty = true;
+    let dirty = false;
+    let hasFrame = false;
     let markedReady = false;
+    let rafId = 0;
+    let io: IntersectionObserver | null = null;
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        isVisible = entries[0]?.isIntersecting ?? true;
-        if (isVisible) {
-          dirty = true;
-          prioritizeSequence("spin");
-          onActiveRef.current?.();
+    const render = () => {
+      rafId = 0;
+      if (!isVisible) return;
+
+      const total = getSequenceCount("spin");
+      const diff = targetRef.current - dampedRef.current;
+      if (hasFrame && Math.abs(diff) > 0.0004) {
+        dampedRef.current += diff * 0.16;
+      }
+
+      const p = dampedRef.current;
+      const riseT = smoothstep(0.0, 0.34, p);
+      const glideRight = smoothstep(0.38, 0.52, p);
+      const glideLeft = smoothstep(0.66, 0.78, p);
+
+      const scale = lerp(0.64, isMobile ? 0.94 : 1.0, riseT);
+      const offsetY = isMobile ? lerp(0.16, -0.09, riseT) : lerp(0.18, 0.0, riseT);
+      const offsetX = isMobile ? 0 : glideRight * 0.22 - glideLeft * 0.44;
+
+      const frameIdx = Math.min(total - 1, Math.floor(p * (total - 1)));
+      const frameImg = getBestFrame("spin", frameIdx);
+
+      if (frameImg) {
+        hasFrame = true;
+        dirty = false;
+        if (!markedReady) {
+          markedReady = true;
+          setCanvasReady(true);
         }
-      },
-      { threshold: 0.01 }
-    );
-    io.observe(section);
+        drawSequenceFrame(ctx, frameImg, canvas.width, canvas.height, {
+          mode: "contain",
+          scale,
+          offsetX,
+          offsetY,
+          featherVoid: true,
+        });
+        if (Math.abs(targetRef.current - dampedRef.current) > 0.0004) {
+          rafId = requestAnimationFrame(render);
+        }
+      } else {
+        // Не крутим 60fps цикл впустую до прихода первого реального кадра
+        dirty = false;
+      }
+    };
 
-    const onScroll = () => {
+    const scheduleRender = () => {
+      if (!started || rafId || !isVisible) return;
+      rafId = requestAnimationFrame(render);
+    };
+
+    const readScroll = () => {
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const p = clamp01(-rect.top / scrollable);
@@ -99,62 +128,83 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
       if (p > 0.15) {
         requestChapterSequence("crunch");
       }
+      dirty = true;
+      scheduleRender();
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, profile.dprCap);
+      isMobile = window.innerWidth < 768;
+      const w = canvas.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || window.innerHeight;
+      canvas.width = Math.max(320, Math.floor(w * dpr));
+      canvas.height = Math.max(200, Math.floor(h * dpr));
+      dirty = true;
+      scheduleRender();
+    };
+
+    const startEngine = () => {
+      if (started) return;
+      started = true;
+      removeWakeListeners();
+
+      // Сначала читаем геометрию (readScroll), затем пишем canvas.width/height (resize) — 0 forced reflow
+      readScroll();
+      resize();
+
+      io = new IntersectionObserver(
+        (entries) => {
+          isVisible = entries[0]?.isIntersecting ?? true;
+          if (isVisible) {
+            dirty = true;
+            prioritizeSequence("spin");
+            onActiveRef.current?.();
+            scheduleRender();
+          }
+        },
+        { threshold: 0.01 },
+      );
+      io.observe(section);
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("scroll", readScroll, { passive: true });
+    };
+
+    const onWake = () => startEngine();
+    const removeWakeListeners = () => {
+      window.removeEventListener("scroll", onWake);
+      window.removeEventListener("wheel", onWake);
+      window.removeEventListener("touchstart", onWake);
+      window.removeEventListener("pointerdown", onWake);
+      window.removeEventListener("keydown", onWake);
+    };
 
     const unsub = subscribeSequence("spin", () => {
+      if (!started) {
+        startEngine();
+      }
+      hasFrame = true;
       dirty = true;
+      scheduleRender();
     });
 
-    let rafId = 0;
-
-    const render = () => {
-      rafId = requestAnimationFrame(render);
-      if (!isVisible) return;
-
-      const total = getSequenceCount("spin");
-      const diff = targetRef.current - dampedRef.current;
-      if (Math.abs(diff) > 0.0004 || dirty) {
-        dampedRef.current += diff * 0.16;
-
-        const p = dampedRef.current;
-        const riseT = smoothstep(0.0, 0.34, p);
-        const glideRight = smoothstep(0.38, 0.52, p);
-        const glideLeft = smoothstep(0.66, 0.78, p);
-        const isMobile = window.innerWidth < 768;
-
-        const scale = lerp(0.64, isMobile ? 0.94 : 1.0, riseT);
-        const offsetY = isMobile ? lerp(0.16, -0.09, riseT) : lerp(0.18, 0.0, riseT);
-        const offsetX = isMobile ? 0 : glideRight * 0.22 - glideLeft * 0.44;
-
-        const frameIdx = Math.min(total - 1, Math.floor(p * (total - 1)));
-        const frameImg = getBestFrame("spin", frameIdx);
-        dirty = frameImg === null;
-
-        if (frameImg) {
-          if (!markedReady) {
-            markedReady = true;
-            setCanvasReady(true);
-          }
-          drawSequenceFrame(ctx, frameImg, canvas.width, canvas.height, {
-            mode: "contain",
-            scale,
-            offsetX,
-            offsetY,
-            featherVoid: true,
-          });
-        }
-      }
-    };
-    render();
+    if (window.scrollY > 4) {
+      startEngine();
+    } else {
+      window.addEventListener("scroll", onWake, { passive: true, once: true });
+      window.addEventListener("wheel", onWake, { passive: true, once: true });
+      window.addEventListener("touchstart", onWake, { passive: true, once: true });
+      window.addEventListener("pointerdown", onWake, { passive: true, once: true });
+      window.addEventListener("keydown", onWake, { passive: true, once: true });
+    }
 
     return () => {
-      cancelAnimationFrame(initRaf);
       cancelAnimationFrame(rafId);
       unsub();
-      io.disconnect();
+      removeWakeListeners();
+      io?.disconnect();
       window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", readScroll);
     };
   }, [isInstant, profile.dprCap]);
 
@@ -267,58 +317,62 @@ export const ChapterSpin: React.FC<ChapterSpinProps> = ({ locale, profile, onAct
         </div>
 
         {/* Phase 2: Bottom-docked on mobile, Left-aligned on desktop ("0.8 мм.") */}
-        <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:left-12 lg:left-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md pointer-events-none">
-          <div
-            className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
-            style={{
-              opacity: stat1Opacity,
-              transform: `translate3d(0, ${(1 - stat1Opacity) * 16}px, 0)`,
-            }}
-          >
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#e7b866]/30 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e7b866]" />
-              <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#f3d28e] uppercase">
-                CALLEBAUT 70.5% · FORM V
-              </span>
+        {stat1Opacity > 0.01 && (
+          <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:left-12 lg:left-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md pointer-events-none">
+            <div
+              className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
+              style={{
+                opacity: stat1Opacity,
+                transform: `translate3d(0, ${(1 - stat1Opacity) * 16}px, 0)`,
+              }}
+            >
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#e7b866]/30 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e7b866]" />
+                <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#f3d28e] uppercase">
+                  CALLEBAUT 70.5% · FORM V
+                </span>
+              </div>
+              <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
+                {SHOWCASE_COPY.spin.stat1Val}
+              </div>
+              <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
+                {SHOWCASE_COPY.spin.stat1Label[locale]}
+              </div>
+              <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
+                {SHOWCASE_COPY.spin.stat1Desc[locale]}
+              </p>
             </div>
-            <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
-              {SHOWCASE_COPY.spin.stat1Val}
-            </div>
-            <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
-              {SHOWCASE_COPY.spin.stat1Label[locale]}
-            </div>
-            <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
-              {SHOWCASE_COPY.spin.stat1Desc[locale]}
-            </p>
           </div>
-        </div>
+        )}
 
         {/* Phase 3: Bottom-docked on mobile, Right-aligned on desktop ("5 слоёв.") */}
-        <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:right-12 lg:right-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md md:text-right pointer-events-none">
-          <div
-            className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
-            style={{
-              opacity: stat2Opacity,
-              transform: `translate3d(0, ${(1 - stat2Opacity) * 16}px, 0)`,
-            }}
-          >
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#2dd4bf]/35 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf]" />
-              <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#99f6e4] uppercase">
-                CRAFTCHOCO ATELIER · KHARKIV
-              </span>
+        {stat2Opacity > 0.01 && (
+          <div className="absolute bottom-24 inset-x-4 md:bottom-auto md:inset-x-auto md:right-12 lg:right-20 md:top-1/2 md:-translate-y-1/2 z-10 md:max-w-md md:text-right pointer-events-none">
+            <div
+              className="p-3.5 md:p-0 rounded-2xl md:rounded-none bg-black/75 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border border-white/10 md:border-0 transition-transform duration-150"
+              style={{
+                opacity: stat2Opacity,
+                transform: `translate3d(0, ${(1 - stat2Opacity) * 16}px, 0)`,
+              }}
+            >
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-[#2dd4bf]/35 bg-black/75 backdrop-blur-md mb-2 md:mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf]" />
+                <span className="font-mono-tech text-[9px] md:text-[10px] tracking-[0.2em] text-[#99f6e4] uppercase">
+                  CRAFTCHOCO ATELIER · KHARKIV
+                </span>
+              </div>
+              <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
+                {SHOWCASE_COPY.spin.stat2Val}
+              </div>
+              <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
+                {SHOWCASE_COPY.spin.stat2Label[locale]}
+              </div>
+              <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
+                {SHOWCASE_COPY.spin.stat2Desc[locale]}
+              </p>
             </div>
-            <div className="text-[clamp(2.2rem,7vw,6rem)] font-bold tracking-tight leading-none gold-gradient-text">
-              {SHOWCASE_COPY.spin.stat2Val}
-            </div>
-            <div className="font-editorial text-base sm:text-2xl text-white mt-1.5 md:mt-3">
-              {SHOWCASE_COPY.spin.stat2Label[locale]}
-            </div>
-            <p className="text-xs sm:text-base text-white/70 mt-1.5 md:mt-3 leading-relaxed line-clamp-2 md:line-clamp-none m-0">
-              {SHOWCASE_COPY.spin.stat2Desc[locale]}
-            </p>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../../app/globals.css";
@@ -10,24 +9,7 @@ import { dictionaries } from "@/lib/i18n";
 import { site } from "@/lib/site";
 import type { Locale } from "@/lib/i18n";
 
-const interTight = Inter_Tight({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "600", "700"],
-  variable: "--font-inter-tight",
-  display: "swap",
-  preload: false,
-  adjustFontFallback: true,
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "600"],
-  variable: "--font-mono-tech",
-  display: "swap",
-  preload: false,
-});
-
-/* Шрифты Playfair загружаются по мере прокрутки к каталогу без блокировки первого экрана 3D */
+/* Шрифты Playfair Display и Manrope подключаются локально в globals.css без лишних Google Fonts CSS-запросов */
 
 /* Speculation Rules API (2026): лёгкий prefetch при наведении без агрессивного prerender на 4G */
 function SpeculationRules() {
@@ -107,7 +89,7 @@ export const viewport: Viewport = {
 export function RootLayoutBase({ locale, children }: { locale: Locale; children: React.ReactNode }) {
   const isVercel = Boolean(process.env.VERCEL);
   return (
-    <html lang={locale} className={`${interTight.variable} ${jetbrainsMono.variable}`}>
+    <html lang={locale}>
       <body className="flex min-h-screen flex-col bg-cream font-body text-choco-900 antialiased">
         <SpeculationRules />
         {children}
